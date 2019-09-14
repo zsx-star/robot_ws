@@ -1,0 +1,7 @@
+<?xml verion="1.0"?>
+
+<launch>
+  <include file="$(find delta_2b_lidar)/launch/delta_2b.launch" />
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find delta_2b_lidar)/rviz/delta_2b_lidar.rviz" />
+</launch>
