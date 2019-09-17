@@ -40,7 +40,6 @@ bool Can2serial::configPort(std::string port,int baud_rate)
 {
 	try 
 	{
-	
 		serial_port_ = new serial::Serial(port,baud_rate,serial::Timeout::simpleTimeout(10)); 
 
 		if (!serial_port_->isOpen())
