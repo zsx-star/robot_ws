@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<launch>
+	<node name="base_control_node" pkg="base_control" type="test_node">
+		<param name="in_topic1"  value="/cmd_vel"/>
+		<param name="out_topic1" value="/odom"/>
+	</node>
+	
+	<node name="lidar_node" pkg="base_control" type="test_node">
+		<param name="out_topic1" value="/scan"/>
+	</node>
+	
+	<node name="telecontrol_node" pkg="base_control" type="test_node">
+		<param name="out_topic1" value="/cmd_vel"/>
+		<param name="in_topic1" value="/image"/>
+	</node>
+	
+	<node name="mapping_node" pkg="base_control" type="test_node">
+		<param name="in_topic1" value="/scan"/>
+		<param name="in_topic2" value="/odom"/>
+		<param name="out_topic1" value="/map"/>
+	</node>
+	
+	<node name="location_node" pkg="base_control" type="test_node">
+		<param name="in_topic1" value="/scan"/>
+		<param name="in_topic2" value="/map"/>
+		<param name="out_topic1" value="/position"/>
+	</node>
+	
+	
+	<node name="path_planning_node" pkg="base_control" type="test_node">
+		<param name="in_topic1" value="/scan"/>
+		<param name="in_topic2" value="/map"/>
+		<param name="out_topic1" value="/path"/>
+	</node>
+	
+	<node name="path_tracking_node" pkg="base_control" type="test_node">
+		<param name="in_topic1" value="/path"/>
+		<param name="in_topic2" value="/position"/>
+		<param name="out_topic1" value="/cmd_vel"/>
+	</node>
+	
+	<node name="camera_node" pkg="base_control" type="test_node">
+		<param name="out_topic1" value="/image"/>
+	</node>	
+	
+	
+	
+</launch>
