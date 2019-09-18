@@ -4,6 +4,7 @@
 #include<ros/ros.h>
 #include<geometry_msgs/Twist.h>
 #include<nav_msgs/Odometry.h>
+#include<cmath>
 
 using std::string;
 using std::cout;
@@ -24,22 +25,35 @@ public:
 	
 	void cmd_callback(const geometry_msgs::Twist::ConstPtr& cmd)
 	{
-		//x_speed = cmd->linear.x/14*pi*d
+		//rotation radius of robot 
+		static float R = 0.175; //m
+		//The robot rotates around a circle, and the distance of the wheels is L.
+		static float L = 2*M_PI*R ;
+		//radius of robot wheel 
+		static float r = 0.05; //m
+		//val = speed*(14.0/2*pi*r)
+		static float coff = 14.0/(2*M_PI*r);
 		
 		//byte2 is mode
 		static uint8_t cmdBuf[10] = {0xff,0xfe,0x01};
-		uint16_t linear_x = fabs(cmd->linear.x);
-		uint16_t linear_y = fabs(cmd->linear.y);
-		uint16_t linear_z = fabs(cmd->angular.z);
 		
-		cmdBuf[3] = linear_x >> 8;
-		cmdBuf[4] = linear_x;
+		float linear_x = (cmd->linear.x>1.0||cmd->linear.x<-1.0)?1.0:fabs(cmd->linear.x);
+		float linear_y = (cmd->linear.y>1.0||cmd->linear.y<-1.0)?1.0:fabs(cmd->linear.y);
+		float angular_z = (cmd->angular.z>180.0||cmd->angular.z<-180.0)?180.0:fabs(cmd->angular.z);
 		
-		cmdBuf[5] = linear_y >> 8;
-		cmdBuf[6] = linear_y;
+		uint16_t x = fabs(linear_x)*coff;
+		uint16_t y = fabs(linear_y)*coff;
+		uint16_t z = fabs(angular_z)/360.0*L*coff;
+
 		
-		cmdBuf[7] = linear_z >> 8;
-		cmdBuf[8] = linear_z;
+		cmdBuf[3] = x >> 8;
+		cmdBuf[4] = x;
+		
+		cmdBuf[5] = y >> 8;
+		cmdBuf[6] = y;
+		
+		cmdBuf[7] = z >> 8;
+		cmdBuf[8] = z;
 		
 		cmdBuf[9] = 0x00; //clear
 		if(cmd->linear.x < 0)
@@ -48,6 +62,10 @@ public:
 			cmdBuf[9] |= 0x02;
 		if(cmd->angular.z < 0)
 			cmdBuf[9] |= 0x01;
+		
+//		for(int i=0; i<10; ++i)
+//			printf("%x ",cmdBuf[i]);
+//		printf("\n");
 		
 		mSerial->write(cmdBuf,10);
 	}
@@ -114,8 +132,6 @@ public:
 		return true;
 	}
 	
-	
-	
 private:
 	ros::Subscriber mSubCmd;
 	ros::Publisher mPubOdom;
@@ -125,6 +141,8 @@ private:
 	bool mUseSerial;
 
 };
+
+
 int main(int argc,char** argv)
 {
 	ros::init(argc,argv,"base_control_node");
