@@ -98,7 +98,7 @@ void KeyboardControl::parseKeyboard(){
 void KeyboardControl::twistCallback(const ros::TimerEvent &){
   if (send_flag_){
     geometry_msgs::Twist twist;
-    twist.linear.x = linear_state_ * linear_scale_;
+    twist.linear.y = linear_state_ * linear_scale_;
     twist.angular.z = angular_state_ * angular_scale_;
     twist_pub_.publish(twist);
     ROS_DEBUG_STREAM("linear: " << twist.linear.x << " angular: " << twist.angular.z);
