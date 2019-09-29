@@ -19,6 +19,9 @@ using std::endl;
 	#define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
 #endif
 
+#define ENCODER_MSG_ID 0x01
+#define IMU_MSG_ID 0x02
+
 PACK(
 struct encoderMsg_t {
     uint8_t header1;  
@@ -37,8 +40,10 @@ struct imuMsg_t {
     uint8_t header2;  
     uint8_t pkg_len;
     uint8_t pkg_id;
-    
-    
+    uint16_t accel_x;
+    uint16_t accel_y;
+    uint16_t gyro_z;
+    uint16_t yaw;
     uint8_t checknum;
 });
 
@@ -60,6 +65,7 @@ private:
 	void bufferIncomingData(const uint8_t * buffer, size_t len);
 	uint16_t calculatePulse(uint16_t &last,const uint16_t &current);
 	void handleEncoderMsg();
+	void handleImuMsg();
 	
 private:
 	ros::NodeHandle nh;
@@ -73,7 +79,7 @@ private:
 	nav_msgs::Odometry mOdom;
 	std::string mOdomFrameId, mBaseFrameId;
 
-	Can2serial   *  mCan;
+	Can2serial    * mCan;
 	serial::Serial* mSerial;
 	std::string     mSerialPortName;
 	bool            mUseSerial;
@@ -251,14 +257,10 @@ void RobotDriver::distributeMsg(const uint8_t* buffer, size_t len)
 	if(buffer[len-1] != sumCheck(buffer+2,len-3))
 		return;
 	uint8_t pkg_id = buffer[3];
-	if(0x01 == pkg_id) //encoder
-	{
-//		for(size_t i=0; i<len; ++i)
-//			std::cout << std::hex << int(buffer[i]) << " ";
-//		std::cout << std::dec<< std::endl;
+	if(ENCODER_MSG_ID == pkg_id) //encoder
 		handleEncoderMsg();
-	}
-		
+	else if(IMU_MSG_ID == pkg_id)
+		handleImuMsg();
 }
 
 uint16_t RobotDriver::calculatePulse(uint16_t& last,const uint16_t &current)
@@ -271,6 +273,11 @@ uint16_t RobotDriver::calculatePulse(uint16_t& last,const uint16_t &current)
 
 	last = current;
 	return delta;
+}
+
+void RobotDriver::handleImuMsg()
+{
+	
 }
 
 void RobotDriver::handleEncoderMsg()
