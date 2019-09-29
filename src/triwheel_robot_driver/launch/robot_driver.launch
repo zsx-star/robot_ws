@@ -5,9 +5,9 @@
 		<param name="port_name"  value="/dev/ttyUSB0"/>
 		<param name="use_serial" value="true"/>
 		<param name="baud_rate" value="115200"/>
-		<param name="wheel_diameter" value="0.1"/>
+		<param name="wheel_diameter" value="0.106"/>
 		<param name="rotation_radius" value="0.175"/>
-		<param name="encoder_resolution" value="1400"/>
+		<param name="encoder_resolution" value="2600"/>
 		<param name="base_frame" value="base_link"/>
 		<param name="odom_frame" value="odom"/>
 	</node>
