@@ -1,10 +1,13 @@
-#include<can2serial/can2serial.h>
-#include<serial/serial.h>
-#include<iostream>
-#include<ros/ros.h>
-#include<geometry_msgs/Twist.h>
-#include<nav_msgs/Odometry.h>
-#include<cmath>
+#include <iostream>
+#include <ros/ros.h>
+#include <serial/serial.h>
+#include <geometry_msgs/Twist.h>
+#include <can2serial/can2serial.h>
+#include <tf/transform_broadcaster.h>
+#include <geometry_msgs/TransformStamped.h>
+#include <nav_msgs/Odometry.h>
+#include <Eigen/Dense>
+#include <cmath>
 
 using std::string;
 using std::cout;
@@ -46,7 +49,7 @@ public:
 	~RobotDriver();
 	void run();
 private:
-	bool initialize_params();
+	bool initializeParams();
 	bool initSerial(string& port_name,int baud_rate);
 	bool initCan(string& port_name);
 	void cmd_callback(const geometry_msgs::Twist::ConstPtr& cmd);
@@ -55,6 +58,7 @@ private:
 	uint8_t sumCheck(const uint8_t* buffer, size_t len);
 	void distributeMsg(const uint8_t* buffer, size_t len);
 	void bufferIncomingData(const uint8_t * buffer, size_t len);
+	uint16_t calculatePulse(uint16_t &last,const uint16_t &current);
 	void handleEncoderMsg();
 	
 private:
@@ -62,17 +66,31 @@ private:
 	ros::NodeHandle nh_private;
 	ros::Subscriber mSubCmd;
 	ros::Publisher mPubOdom;
-
-	Can2serial *mCan;
-	serial::Serial *mSerial;
-	std::string mSerialPortName;
-	bool mUseSerial;
 	
+	tf2_ros::TransformBroadcaster   mTfBroadcaster;
+	geometry_msgs::TransformStamped mTransformStamped;
+	
+	nav_msgs::Odometry mOdom;
+	std::string mOdomFrameId, mBaseFrameId;
+
+	Can2serial   *  mCan;
+	serial::Serial* mSerial;
+	std::string     mSerialPortName;
+	bool            mUseSerial;
 	uint8_t * const mPkgBuffer;
 	
 	const encoderMsg_t *const mEncoderMsg;
 	const imuMsg_t     *const mImuMsg;
-
+	
+	//robot params
+	float mWheelDiameter;
+	float mRotationRadius;
+	int   mEncoderResolution;
+	
+	Eigen::Matrix3f mBase2wheelMatrix;
+	Eigen::Matrix3f mWheel2baseMatrix;
+	
+	Eigen::Vector3f mPose; //x,y,theta
 };
 
 RobotDriver::RobotDriver():
@@ -81,7 +99,6 @@ RobotDriver::RobotDriver():
 	mEncoderMsg((encoderMsg_t *)mPkgBuffer),
 	mImuMsg((imuMsg_t *)mPkgBuffer)
 {
-
 }
 RobotDriver::~RobotDriver()
 {
@@ -97,6 +114,22 @@ RobotDriver::~RobotDriver()
 		delete mCan;
 		mCan = NULL;
 	}
+}
+
+bool RobotDriver::initializeParams()
+{
+	mSerialPortName = nh_private.param<std::string>("port_name","/dev/ttyUSB0");
+	mUseSerial = nh_private.param<bool>("use_serial",true);
+	mWheelDiameter = nh_private.param<float>("wheel_diameter",0.1);
+	mRotationRadius = nh_private.param<float>("rotation_radius",0.175);
+	mEncoderResolution = nh_private.param<int>("encoder_resolution",1400);
+	mBaseFrameId = nh_private.param<std::string>("base_frame","base_link");
+	mOdomFrameId = nh_private.param<std::string>("odom_frame","odom");
+	
+	mBase2wheelMatrix << 1.0         , 0.0         , -mRotationRadius,
+						 -sin(M_PI/6),  cos(M_PI/6), -mRotationRadius,
+						 -cos(M_PI/3), -sin(M_PI/3), -mRotationRadius;
+	mWheel2baseMatrix = mBase2wheelMatrix.inverse();
 }
 
 void RobotDriver::cmd_callback(const geometry_msgs::Twist::ConstPtr& cmd)
@@ -135,7 +168,7 @@ void RobotDriver::cmd_callback(const geometry_msgs::Twist::ConstPtr& cmd)
 		cmdBuf[9] |= 0x04;
 	if(cmd->linear.y < 0)
 		cmdBuf[9] |= 0x02;
-	if(cmd->angular.z < 0)
+	if(cmd->angular.z > 0)
 		cmdBuf[9] |= 0x01;
 	
 //		for(int i=0; i<10; ++i)
@@ -146,7 +179,7 @@ void RobotDriver::cmd_callback(const geometry_msgs::Twist::ConstPtr& cmd)
 
 void RobotDriver::run()
 {
-	initialize_params();
+	initializeParams();
 	mSubCmd = nh.subscribe("/cmd_vel",1,&RobotDriver::cmd_callback,this);
 	mPubOdom = nh.advertise<nav_msgs::Odometry>("/odom",50);
 	if(mUseSerial)
@@ -173,6 +206,7 @@ void RobotDriver::readSerialThread()
 			std::stringstream output;
 			output << "Error reading from serial port: " << e.what();
 			std::cout << output.str() <<std::endl;
+			continue;
     	}
     	if(len==0) continue;
 
@@ -218,101 +252,102 @@ void RobotDriver::distributeMsg(const uint8_t* buffer, size_t len)
 		return;
 	uint8_t pkg_id = buffer[3];
 	if(0x01 == pkg_id) //encoder
+	{
+//		for(size_t i=0; i<len; ++i)
+//			std::cout << std::hex << int(buffer[i]) << " ";
+//		std::cout << std::dec<< std::endl;
 		handleEncoderMsg();
+	}
+		
+}
+
+uint16_t RobotDriver::calculatePulse(uint16_t& last,const uint16_t &current)
+{
+	uint16_t delta;
+	if (current > last)
+		delta = (current - last) < (last - current + 65535) ? (current - last) : (current - last - 65535);
+	else
+		delta = (last - current) < (current - last + 65535) ? (current - last) : (current - last + 65535);
+
+	last = current;
+	return delta;
 }
 
 void RobotDriver::handleEncoderMsg()
 {
-	uint16_t encoder_A = mEncoderMsg->encoderA_val;
-	uint16_t encoder_B = mEncoderMsg->encoderB_val;
-	uint16_t encoder_C = mEncoderMsg->encoderC_val;
+	static ros::Time last_time, current_time;
+	static bool odom_start_flag = true;
+	static uint16_t last_value_A=0, last_value_B=0, last_value_C=0;
 	
+	int16_t delta_A = calculatePulse(last_value_A, mEncoderMsg->encoderA_val);
+	int16_t delta_B = calculatePulse(last_value_B, mEncoderMsg->encoderB_val);
+	int16_t delta_C = calculatePulse(last_value_C, mEncoderMsg->encoderC_val);
 	
-  rev_left_ = buffer_data[5] * 256 + buffer_data[6];
-  rev_right_ = buffer_data[7] * 256 + buffer_data[8];
+//	std::cout << mEncoderMsg->encoderA_val << "\t" << mEncoderMsg->encoderB_val << "\t" << mEncoderMsg->encoderC_val << std::endl;
+//	std::cout << delta_A << "\t" << delta_B << "\t" << delta_C << std::endl;
+	
+	current_time = ros::Time::now();
+	
+	if(odom_start_flag)
+	{
+		odom_start_flag = false;
+		last_time = current_time;
+		mPose = Eigen::Vector3f::Zero();
+		return;
+	}
+	
+	static float coff_inverse = M_PI * mWheelDiameter/mEncoderResolution;
+	Eigen::Vector3f delta_wheel_dis;
+	delta_wheel_dis[0] = delta_A * coff_inverse;
+	delta_wheel_dis[1] = delta_B * coff_inverse;
+	delta_wheel_dis[2] = delta_C * coff_inverse;
+	
+	Eigen::Vector3f delta_pose = mWheel2baseMatrix * delta_wheel_dis;
+	Eigen::Vector3f speed = delta_pose/(current_time - last_time).toSec();
+	mPose += delta_pose;
+	
+//	cout <<"1: "<<delta_wheel_dis.transpose() << endl;
+//	cout <<"2: "<<delta_pose.transpose() << endl;
+	
+	if(mPose[2]> 2*M_PI)
+		mPose[2] -= 2*M_PI;
+	else if(mPose[2] < -2*M_PI)
+		mPose[2] += 2*M_PI;
+	
+	//cout << mPose[0] << "\t" << mPose[1] << "\t" <<  mPose[2]*180.0/M_PI << endl;
+	
 
-  cal_pulse(cur_left_, rev_left_, delta_left_);
-  cal_pulse(cur_right_, rev_right_, delta_right_);
+	mTransformStamped.header.stamp = current_time;
+	mTransformStamped.header.frame_id = mOdomFrameId;
+	mTransformStamped.child_frame_id = mBaseFrameId;
+	mTransformStamped.transform.translation.x = mPose[0];
+	mTransformStamped.transform.translation.y = mPose[1];
+	mTransformStamped.transform.translation.z = 0.0;
+	tf::Quaternion q;
+	q.setRPY(0, 0, mPose[2]);
+	mTransformStamped.transform.rotation.x = q.x();
+	mTransformStamped.transform.rotation.y = q.y();
+	mTransformStamped.transform.rotation.z = q.z();
+	mTransformStamped.transform.rotation.w = q.w();
 
-  ROS_DEBUG_STREAM("receive -> left: " << delta_left_ << "(" << rev_left_ << ")" << "; right: " << delta_right_ << "(" << rev_right_ << ")");
+	mTfBroadcaster.sendTransform(mTransformStamped);
 
-  now_ = ros::Time::now();
-  if (start_flag_){
-    accumulation_x_ = accumulation_y_ = accumulation_th_ = 0.0;
-    last_time_ = now_;
-    start_flag_ = false;
-    return;
-  }
-  delta_time_ = (now_ - last_time_).toSec();
-  if (delta_time_ >= (0.5 / control_rate_)){
-    double model_param;
-    if (delta_right_ <= delta_left_){
-      model_param = model_param_cw_;
-    }else{
-      model_param = model_param_acw_;
-    }
-    double delta_theta = (delta_right_ - delta_left_)/ (pulse_per_cycle_ * pid_rate_ * model_param);
-    double v_theta = delta_theta / delta_time_;
+	mOdom.header.frame_id = mOdomFrameId;
+	mOdom.child_frame_id = mBaseFrameId;
+	mOdom.header.stamp = current_time;
+	mOdom.pose.pose.position.x = mPose[0];
+	mOdom.pose.pose.position.y = mPose[1];
+	mOdom.pose.pose.position.z = 0;
+	mOdom.pose.pose.orientation.x = q.getX();
+	mOdom.pose.pose.orientation.y = q.getY();
+	mOdom.pose.pose.orientation.z = q.getZ();
+	mOdom.pose.pose.orientation.w = q.getW();
+	mOdom.twist.twist.linear.x = speed[0];
+	mOdom.twist.twist.linear.y = speed[1];
+	mOdom.twist.twist.angular.z = speed[2];
+	mPubOdom.publish(mOdom);
 
-    double delta_dis = (delta_right_ + delta_left_) / (pulse_per_cycle_ * pid_rate_ * 2.0);
-    double v_dis = delta_dis / delta_time_;
-
-    double delta_x, delta_y;
-    if (delta_theta == 0){
-      delta_x = delta_dis;
-      delta_y = 0.0;
-    }else{
-      delta_x = delta_dis * (sin(delta_theta) / delta_theta);
-      delta_y = delta_dis * ( (1 - cos(delta_theta)) / delta_theta );
-    }
-
-    accumulation_x_ += (cos(accumulation_th_) * delta_x - sin(accumulation_th_) * delta_y);
-    accumulation_y_ += (sin(accumulation_th_) * delta_x + cos(accumulation_th_) * delta_y);
-    accumulation_th_ += delta_theta;
-    
-    if(odom_increment_)
-    {
-    	accumulation_x_+= odom_increment_->x;
-    	accumulation_y_+= odom_increment_->y;
-    	accumulation_th_+= odom_increment_->theta;
-    	odom_increment_.reset(NULL);
-    }
-
-    transformStamped_.header.stamp = ros::Time::now();
-    transformStamped_.header.frame_id = odom_frame_;
-    transformStamped_.child_frame_id = base_frame_;
-    transformStamped_.transform.translation.x = accumulation_x_;
-    transformStamped_.transform.translation.y = accumulation_y_;
-    transformStamped_.transform.translation.z = 0.0;
-    tf2::Quaternion q;
-    q.setRPY(0, 0, accumulation_th_);
-    transformStamped_.transform.rotation.x = q.x();
-    transformStamped_.transform.rotation.y = q.y();
-    transformStamped_.transform.rotation.z = q.z();
-    transformStamped_.transform.rotation.w = q.w();
-   
-
-    br_.sendTransform(transformStamped_);
-
-    odom_.header.frame_id = odom_frame_;
-    odom_.child_frame_id = base_frame_;
-    odom_.header.stamp = now_;
-    odom_.pose.pose.position.x = accumulation_x_;
-    odom_.pose.pose.position.y = accumulation_y_;
-    odom_.pose.pose.position.z = 0;
-    odom_.pose.pose.orientation.x = q.getX();
-    odom_.pose.pose.orientation.y = q.getY();
-    odom_.pose.pose.orientation.z = q.getZ();
-    odom_.pose.pose.orientation.w = q.getW();
-    odom_.twist.twist.linear.x = v_dis;
-    odom_.twist.twist.linear.y = 0;
-    odom_.twist.twist.angular.z = v_theta;
-
-    odom_pub_.publish(odom_);
-
-    ROS_DEBUG_STREAM("accumulation_x: " << accumulation_x_ << "; accumulation_y: " << accumulation_y_ <<"; accumulation_th: " << accumulation_th_);
-  }
-  last_time_ = now_;
+	last_time = current_time;
 }
 
 uint8_t RobotDriver::sumCheck(const uint8_t* buffer, size_t len)
@@ -321,12 +356,6 @@ uint8_t RobotDriver::sumCheck(const uint8_t* buffer, size_t len)
 	for(size_t i=0; i<len; ++i)
 		sum += buffer[i];
 	return sum;
-}
-
-bool RobotDriver::initialize_params()
-{
-	mSerialPortName = nh_private.param<std::string>("port_name","/dev/ttyUSB0");
-	mUseSerial = nh_private.param<bool>("use_serial",true);
 }
 
 bool RobotDriver::initCan(string& port_name)
@@ -343,7 +372,7 @@ bool RobotDriver::initCan(string& port_name)
 
 bool RobotDriver::initSerial(string& port_name,int baud_rate)
 {
-	try 
+	try
 	{
 		mSerial = new serial::Serial(port_name,baud_rate,serial::Timeout::simpleTimeout(10)); 
 		if (!mSerial->isOpen())
@@ -369,24 +398,15 @@ bool RobotDriver::initSerial(string& port_name,int baud_rate)
 		std::cout << output.str() <<std::endl;
 		return false;
 	}
-	
-	//send 10 bytes random data to enable the robot
-	for(uint8_t i=0; i<10; ++i)
-		mSerial->write(&i,1);
 	return true;
 }
-	
-
 
 int main(int argc,char** argv)
 {
 	ros::init(argc,argv,"robot_driver_node");
-	
 	RobotDriver driver;
 	driver.run();
-	
 	ros::spin();
-	
 	return 0;
 }
 

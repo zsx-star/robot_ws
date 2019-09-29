@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <launch>
-	<node name="base_control_node" pkg="base_control" type="base_control_node" output="screen">
+	<node name="triwheel_robot_driver_node" pkg="triwheel_robot_driver" type="triwheel_robot_driver_node" output="screen">
 		<param name="port_name"  value="/dev/ttyUSB0"/>
 		<param name="use_serial" value="true"/>
 		<param name="baud_rate" value="115200"/>
