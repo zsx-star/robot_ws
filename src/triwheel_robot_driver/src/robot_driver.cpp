@@ -277,10 +277,10 @@ uint16_t RobotDriver::calculatePulse(uint16_t& last,const uint16_t &current)
 
 void RobotDriver::handleImuMsg()
 {
-	float accel_x = mImuMsg->accel_x - 32768;
-	float accel_y = mImuMsg->accel_y - 32768;
-	float gyro_z = mImuMsg->gyro_z -32768;
-	float yaw = (mImuMsg->yaw*1.0 -32768)/100;
+	float accel_x = (1.0*mImuMsg->accel_x - 32768)/32768 * (9.81*2); //m/s2
+	float accel_y = (1.0*mImuMsg->accel_y - 32768)/32768 * (9.81*2);
+	float gyro_z  = (1.0*mImuMsg->gyro_z  - 32768)/32768 * 2000;     //deg/s
+	float yaw     = (1.0*mImuMsg->yaw      -32768)/100;              //deg
 	
 	cout << accel_x  << "\t" << accel_y  << "\t" << gyro_z  << "\t" << yaw << endl;
 }
