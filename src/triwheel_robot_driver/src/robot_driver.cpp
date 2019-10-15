@@ -283,6 +283,7 @@ void RobotDriver::handleImuMsg()
 	float yaw     = (1.0*mImuMsg->yaw      -32768)/100 +360.0;       //deg
 	
 	//cout << accel_x  << "\t" << accel_y  << "\t" << gyro_z  << "\t" << yaw << endl;
+
 	static float yaw_offset = 0.0;
 	if(yaw_offset ==0)
 	{

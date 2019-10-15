@@ -22,9 +22,9 @@ add_definitions(${EIGEN_DEFINITIONS})
 
 
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES base_control
-  CATKIN_DEPENDS geometry_msgs roscpp rospy std_msgs
+#  INCLUDE_DIRS include
+#  LIBRARIES base_control
+#  CATKIN_DEPENDS geometry_msgs roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
 
