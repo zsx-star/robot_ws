@@ -291,7 +291,7 @@ void RobotDriver::handleImuMsg()
 		return;
 	}
 	yaw = yaw - yaw_offset;
-	cout << std::fixed << accel_x  << "\t" << accel_y  << "\t" << gyro_z  << "\t" << yaw << endl;
+	//cout << std::fixed << accel_x  << "\t" << accel_y  << "\t" << gyro_z  << "\t" << yaw << endl;
 }
 
 void RobotDriver::handleEncoderMsg()
