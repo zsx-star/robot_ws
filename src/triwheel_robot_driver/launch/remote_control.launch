@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<launch>
+	<node name="triwheel_robot_driver_node" pkg="triwheel_robot_driver" type="triwheel_robot_driver_node" output="screen">
+		<param name="port_name"  value="/dev/ttyUSB0"/>
+		<param name="use_serial" value="true"/>
+		<param name="baud_rate" value="115200"/>
+		<param name="wheel_diameter" value="0.106"/>
+		<param name="rotation_radius" value="0.175"/>
+		<param name="encoder_resolution" value="2600"/>
+		<param name="base_frame" value="base_link"/>
+		<param name="odom_frame" value="odom"/>
+	</node>
+	
+	<node name="remote_control_node" pkg="robot_control" type="remote_control.py"/>
+	
+</launch>
