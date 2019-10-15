@@ -18,7 +18,7 @@ class ReoteControl:
 			tcpCliSock,client_addr = self.tcpSerSock.accept() 
 			print('connect ok addr:',client_addr)
 			while not rospy.is_shutdown():
-				data = tcpCliSock.recv(2048)
+				data = tcpCliSock.recv(8)
 				if not data:
 					break
 				print(data.decode(),type(data))
@@ -27,9 +27,10 @@ class ReoteControl:
 		self.tcpSerSock.close()
 		
 	def parse(self,data):
-		if len(data) < 8:
+		index = data.find('<robot>',0,len(data))
+		if(index == -1):
 			return
-		val = int(data[7])
+		val = int(data[index+7])
 		
 		cmd = Twist()
 		if(val == 1):

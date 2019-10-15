@@ -12,6 +12,6 @@
 		<param name="odom_frame" value="odom"/>
 	</node>
 	
-	<node name="remote_control_node" pkg="robot_control" type="remote_control.py"/>
+	<node name="remote_control_node" pkg="robot_control" type="remote_control.py" output="screen"/>
 	
 </launch>
