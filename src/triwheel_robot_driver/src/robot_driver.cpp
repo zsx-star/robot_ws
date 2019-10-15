@@ -370,15 +370,15 @@ uint8_t RobotDriver::sumCheck(const uint8_t* buffer, size_t len)
 	return sum;
 }
 
-bool RobotDriver::initCan(string& port_name)
+bool RobotDriver::initCan(std::string& port_name)
 {
-	mCan = new Can2serial();
+	mCan = new Can2serial;
 	
-	if(!mCan->configPort(port_name))
-	{
-		ROS_ERROR("[%s] open %s failed!",ros::this_node::getName().c_str(), port_name.c_str());
-		return false;
-	}
+//	if(!mCan->configPort(port_name,460800))
+//	{
+//		ROS_ERROR("[%s] open %s failed!",ros::this_node::getName().c_str(), port_name.c_str());
+//		return false;
+//	}
 	return true;
 }
 
