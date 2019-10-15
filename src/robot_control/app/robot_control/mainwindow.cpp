@@ -16,6 +16,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     keys_state = std::vector<bool>(4,false);
     send_cmd_thread = std::shared_ptr<std::thread>(new std::thread(std::bind(&MainWindow::sendCmdThread,this)));
+
+    ui->pushButton_up->setShortcut(Qt::Key_Up);
+    ui->pushButton_down->setShortcut(Qt::Key_Down);
+    ui->pushButton_left->setShortcut(Qt::Key_Left);
+    ui->pushButton_right->setShortcut(Qt::Key_Right);
+
 }
 
 MainWindow::~MainWindow()
