@@ -1,5 +1,5 @@
 #include "can2serial/can2serial.h"
-#include<cstring>
+#include <cstring>
 
 static void printf_buf(const unsigned char *buf,int len)
 {
