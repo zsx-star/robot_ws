@@ -10,12 +10,12 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setMaximumSize(337,253);
     this->setMinimumSize(337,253);
     socket = new QTcpSocket();
-    ui->lineEdit_ip->setText("192.168.0.194");
+    ui->lineEdit_ip->setText("192.168.0.124");
     ui->lineEdit_port->setText("12345");
     cmd_header = "<robot>";
 
     keys_state = std::vector<bool>(4,false);
-    send_cmd_thread = std::shared_ptr<std::thread>(new std::thread(std::bind(&MainWindow::sendCmdThread,this)));
+    mutexes = std::vector<std::mutex>(4);
 
     ui->pushButton_up->setShortcut(Qt::Key_Up);
     ui->pushButton_down->setShortcut(Qt::Key_Down);
@@ -51,6 +51,7 @@ void MainWindow::sendCmdThread()
     {
         for(int i=0; i<keys_state.size();++i)
         {
+            std::unique_lock<std::mutex> lock(mutexes[i]);
             if(keys_state[i])
             {
                 std::string cmd = cmd_header+std::to_string(i+1);
@@ -58,7 +59,7 @@ void MainWindow::sendCmdThread()
                 bool BoolFlush = socket->flush();
             }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
 }
 
@@ -75,12 +76,14 @@ void MainWindow::on_pushButton_connect_clicked(bool checked)
         }
         else
         {
+            send_cmd_thread = std::shared_ptr<std::thread>(new std::thread(std::bind(&MainWindow::sendCmdThread,this)));
             ui->statusBar->showMessage("connect completed ",1000);
             ui->pushButton_connect->setText("disconnect");
         }
     }
     else
     {
+        send_cmd_thread_flag = false;
         socket->close();
         ui->pushButton_connect->setText("connect");
     }
@@ -88,40 +91,48 @@ void MainWindow::on_pushButton_connect_clicked(bool checked)
 
 void MainWindow::on_pushButton_up_pressed()
 {
+    std::unique_lock<std::mutex> lock(mutexes[0]);
     keys_state[0] = true;
 }
 
 void MainWindow::on_pushButton_up_released()
 {
+   std::unique_lock<std::mutex> lock(mutexes[0]);
    keys_state[0] = false;
 }
 
 void MainWindow::on_pushButton_down_pressed()
 {
+    std::unique_lock<std::mutex> lock(mutexes[1]);
     keys_state[1] = true;
 }
 
 void MainWindow::on_pushButton_down_released()
 {
+    std::unique_lock<std::mutex> lock(mutexes[1]);
     keys_state[1] = false;
 }
 
 void MainWindow::on_pushButton_left_pressed()
 {
+    std::unique_lock<std::mutex> lock(mutexes[2]);
     keys_state[2] = true;
 }
 
 void MainWindow::on_pushButton_left_released()
 {
+    std::unique_lock<std::mutex> lock(mutexes[2]);
     keys_state[2] = false;
 }
 
 void MainWindow::on_pushButton_right_pressed()
 {
+    std::unique_lock<std::mutex> lock(mutexes[3]);
     keys_state[3] = true;
 }
 
 void MainWindow::on_pushButton_right_released()
 {
+    std::unique_lock<std::mutex> lock(mutexes[3]);
     keys_state[3] = false;
 }

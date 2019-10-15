@@ -34,13 +34,13 @@ class ReoteControl:
 		
 		cmd = Twist()
 		if(val == 1):
-			cmd.linear.y = 0.5
+			cmd.linear.y = 0.3
 		elif(val == 2):
-			cmd.linear.y = -0.5
+			cmd.linear.y = -0.3
 		elif(val ==3):
-			cmd.angular.z = 120.0
+			cmd.angular.z = 100.0
 		elif(val ==4):
-			cmd.angular.z = -120.0
+			cmd.angular.z = -100.0
 		self.cmd_publisher.publish(cmd)
 
 

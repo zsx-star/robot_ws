@@ -5,6 +5,7 @@
 #include <QTcpSocket>
 #include <QCloseEvent>
 #include <string>
+#include <mutex>
 #include <thread>
 #include <chrono>
 #include <vector>
@@ -50,6 +51,7 @@ private:
     std::string cmd_header;
     bool send_cmd_thread_flag;
     std::vector<bool> keys_state;
+    std::vector<std::mutex> mutexes;
 };
 
 #endif // MAINWINDOW_H
