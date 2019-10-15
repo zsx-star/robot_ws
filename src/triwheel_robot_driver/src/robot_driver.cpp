@@ -280,9 +280,16 @@ void RobotDriver::handleImuMsg()
 	float accel_x = (1.0*mImuMsg->accel_x - 32768)/32768 * (9.81*2); //m/s2
 	float accel_y = (1.0*mImuMsg->accel_y - 32768)/32768 * (9.81*2);
 	float gyro_z  = (1.0*mImuMsg->gyro_z  - 32768)/32768 * 2000;     //deg/s
-	float yaw     = (1.0*mImuMsg->yaw      -32768)/100;              //deg
+	float yaw     = (1.0*mImuMsg->yaw      -32768)/100 + 360.0;      //deg
 	
-	cout << accel_x  << "\t" << accel_y  << "\t" << gyro_z  << "\t" << yaw << endl;
+	static float yaw_offset = 0.0;
+	if(yaw_offset ==0)
+	{
+		yaw_offset = yaw;
+		return;
+	}
+	yaw = yaw - yaw_offset;
+	cout << std::fixed << accel_x  << "\t" << accel_y  << "\t" << gyro_z  << "\t" << yaw << endl;
 }
 
 void RobotDriver::handleEncoderMsg()
