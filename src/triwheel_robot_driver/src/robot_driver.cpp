@@ -325,7 +325,10 @@ void RobotDriver::handleEncoderMsg()
 	
 	Eigen::Vector3f delta_pose = mWheel2baseMatrix * delta_wheel_dis;
 	Eigen::Vector3f speed = delta_pose/(current_time - last_time).toSec();
-	mPose += delta_pose;
+	
+	mPose[0] += cos(mPose[2])*delta_pose[0] - sin(mPose[2])*delta_pose[1];
+	mPose[1] += sin(mPose[2])*delta_pose[0] + cos(mPose[2])*delta_pose[1];
+	mPose[2] += delta_pose[2];
 	
 //	cout <<"1: "<<delta_wheel_dis.transpose() << endl;
 //	cout <<"2: "<<delta_pose.transpose() << endl;
