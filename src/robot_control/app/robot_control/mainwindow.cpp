@@ -59,7 +59,7 @@ void MainWindow::sendCmdThread()
                 bool BoolFlush = socket->flush();
             }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }
 
