@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<launch>
+	<node name="keyboard_control_node" pkg="keyboard_control" type="keyboard_control_node" output="screen" >
+		<param name="linear_min" value="0.2" />
+		<param name="linear_max" value="1.0" />
+		<param name="linear_step" value="0.2" />
+		
+		<param name="angular_min" value="0.5" />
+		<param name="angular_max" value="4.0" />
+		<param name="angular_step" value="0.2" />
+		
+		<param name="rate" value="10.0" />
+	</node>
+</launch>

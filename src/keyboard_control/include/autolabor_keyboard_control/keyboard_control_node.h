@@ -16,6 +16,7 @@
 #define KEYBOARD_9      10
 #define KEYBOARD_0      11
 
+namespace autolabor_tool {
 class KeyboardControl
 {
 public:
@@ -46,5 +47,7 @@ private:
   void buttonTwistCheck(int value, int& state, int down, int up);
   void buttonScaleCheck(int value, double& scale, double step, double limit);
 };
+
+}
 
 #endif // KEYBOARD_CONTROL_NODE_H

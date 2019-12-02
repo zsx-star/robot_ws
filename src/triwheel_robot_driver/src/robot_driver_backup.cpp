@@ -168,6 +168,7 @@ void RobotDriver::twistCallback(const geometry_msgs::Twist::ConstPtr& cmd)
 void RobotDriver::sendSpeedCallback(const ros::TimerEvent&)
 {
 	float linear_x = (mCurrentTwist.linear.x>1.0||mCurrentTwist.linear.x<-1.0)?1.0:fabs(mCurrentTwist.linear.x);
+	float linear_y = (mCurrentTwist.linear.y>1.0||mCurrentTwist.linear.y<-1.0)?1.0:fabs(mCurrentTwist.linear.y);
 	float angular_z = (mCurrentTwist.angular.z>M_PI||mCurrentTwist.angular.z<-M_PI)?M_PI:fabs(mCurrentTwist.angular.z);
 	
 	//车轮旋转一圈输出 mEncoderResolution 个脉冲
@@ -176,19 +177,18 @@ void RobotDriver::sendSpeedCallback(const ros::TimerEvent&)
 	
 	static float coff = mEncoderResolution/100.0/(M_PI*mWheelDiameter);
 	
-	uint16_t y = fabs(linear_x)*coff;
+	uint16_t x = fabs(linear_x)*coff;
+	uint16_t y = fabs(linear_y)*coff;
 	uint16_t z = fabs(angular_z)*mRotationRadius*coff;
 	
 	if((ros::Time::now()-mLastTwistTime).toSec() > 0.2)
-		y = z = 0.0;
+		x = y = z = 0;
 	
 	//byte2 is mode
 	static uint8_t cmdBuf[10] = {0xff,0xfe,0x01};
-	//robot x axis
-	cmdBuf[3] = 0;
-	cmdBuf[4] = 0;
+	cmdBuf[3] = x >> 8;
+	cmdBuf[4] = x;
 	
-	//robot y axis
 	cmdBuf[5] = y >> 8;
 	cmdBuf[6] = y;
 	
@@ -196,11 +196,12 @@ void RobotDriver::sendSpeedCallback(const ros::TimerEvent&)
 	cmdBuf[8] = z;
 	
 	cmdBuf[9] = 0x00; //clear
-
 	if(mCurrentTwist.linear.x < 0)
-		cmdBuf[9] |= 0x02; //y dir
+		cmdBuf[9] |= 0x04;
+	if(mCurrentTwist.linear.y < 0)
+		cmdBuf[9] |= 0x02;
 	if(mCurrentTwist.angular.z > 0)
-		cmdBuf[9] |= 0x01; //z dir
+		cmdBuf[9] |= 0x01;
 	
 //		for(int i=0; i<10; ++i)
 //			printf("%x ",cmdBuf[i]);
@@ -357,8 +358,8 @@ void RobotDriver::handleEncoderMsg()
 	mTransformStamped.header.stamp = current_time;
 	mTransformStamped.header.frame_id = mOdomFrameId;
 	mTransformStamped.child_frame_id = mBaseFrameId;
-	mTransformStamped.transform.translation.x = mPose[1];
-	mTransformStamped.transform.translation.y = -mPose[0];
+	mTransformStamped.transform.translation.x = mPose[0];
+	mTransformStamped.transform.translation.y = mPose[1];
 	mTransformStamped.transform.translation.z = 0.0;
 	tf::Quaternion q;
 	q.setRPY(0, 0, mPose[2]);
@@ -372,15 +373,15 @@ void RobotDriver::handleEncoderMsg()
 	mOdom.header.frame_id = mOdomFrameId;
 	mOdom.child_frame_id = mBaseFrameId;
 	mOdom.header.stamp = current_time;
-	mOdom.pose.pose.position.x = mPose[1];
-	mOdom.pose.pose.position.y = -mPose[0];
+	mOdom.pose.pose.position.x = mPose[0];
+	mOdom.pose.pose.position.y = mPose[1];
 	mOdom.pose.pose.position.z = 0;
 	mOdom.pose.pose.orientation.x = q.getX();
 	mOdom.pose.pose.orientation.y = q.getY();
 	mOdom.pose.pose.orientation.z = q.getZ();
 	mOdom.pose.pose.orientation.w = q.getW();
-	mOdom.twist.twist.linear.x = speed[1];
-	mOdom.twist.twist.linear.y = -speed[0];
+	mOdom.twist.twist.linear.x = speed[0];
+	mOdom.twist.twist.linear.y = speed[1];
 	mOdom.twist.twist.angular.z = speed[2];
 	mPubOdom.publish(mOdom);
 

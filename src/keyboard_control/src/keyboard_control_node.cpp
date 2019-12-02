@@ -6,18 +6,20 @@
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
 
-#include "robot_keyboard_control/keyboard_control_node.h"
+#include "autolabor_keyboard_control/keyboard_control_node.h"
+
+namespace autolabor_tool {
 
 KeyboardControl::KeyboardControl():linear_state_(0), angular_state_(0), port_name_(""){
   ros::NodeHandle private_node("~");
 
   private_node.param("linear_min", linear_min_, 0.2);
-  private_node.param("linear_max", linear_max_, 1.0);
+  private_node.param("linear_max", linear_max_, 2.0);
   private_node.param("linear_step", linear_step_, 0.2);
 
-  private_node.param("angular_min", angular_min_, 90.0);
-  private_node.param("angular_max", angular_max_, 180.0);
-  private_node.param("angular_step", angular_step_, 30.0);
+  private_node.param("angular_min", angular_min_, 0.5);
+  private_node.param("angular_max", angular_max_, 4.0);
+  private_node.param("angular_step", angular_step_, 0.2);
 
   private_node.param("rate", rate_, 10.0);
 
@@ -98,7 +100,7 @@ void KeyboardControl::parseKeyboard(){
 void KeyboardControl::twistCallback(const ros::TimerEvent &){
   if (send_flag_){
     geometry_msgs::Twist twist;
-    twist.linear.y = linear_state_ * linear_scale_;
+    twist.linear.x = linear_state_ * linear_scale_;
     twist.angular.z = angular_state_ * angular_scale_;
     twist_pub_.publish(twist);
     ROS_DEBUG_STREAM("linear: " << twist.linear.x << " angular: " << twist.angular.z);
@@ -146,10 +148,11 @@ void KeyboardControl::run(){
     ros::spin();
   }
 }
+}
 
 int main(int argc, char *argv[]){
   ros::init(argc, argv, "keyboard_control_node");
-  KeyboardControl keyboard_control;
+  autolabor_tool::KeyboardControl keyboard_control;
   keyboard_control.run();
   return 0;
 }

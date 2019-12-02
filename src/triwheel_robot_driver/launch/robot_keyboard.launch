@@ -12,4 +12,6 @@
 		<param name="odom_frame" value="odom"/>
 	</node>
 	
+	<include file="$(find keyboard_control)/launch/keyboard.launch"/>
+	
 </launch>
