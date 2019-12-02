@@ -12,11 +12,12 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
-  can2serial
+  serial
   tf
 )
 find_package(cmake_modules REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 add_definitions(${EIGEN_DEFINITIONS})
 

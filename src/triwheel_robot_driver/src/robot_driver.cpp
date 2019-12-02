@@ -2,13 +2,11 @@
 #include <ros/ros.h>
 #include <serial/serial.h>
 #include <geometry_msgs/Twist.h>
-#include <can2serial/can2serial.h>
 #include <tf/transform_broadcaster.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <Eigen/Dense>
-#include <mutex>
-#include <thread>
+#include <boost/thread.hpp>
 #include <cmath>
 
 using std::string;
@@ -58,7 +56,6 @@ public:
 private:
 	bool initializeParams();
 	bool initSerial(string& port_name,int baud_rate);
-	bool initCan(string& port_name);
 	void twistCallback(const geometry_msgs::Twist::ConstPtr& cmd);
 	void sendSpeedCallback(const ros::TimerEvent& );
 	void readSerialThread();
@@ -83,10 +80,8 @@ private:
 	nav_msgs::Odometry mOdom;
 	std::string mOdomFrameId, mBaseFrameId;
 
-	Can2serial    * mCan;
 	serial::Serial* mSerial;
 	std::string     mSerialPortName;
-	bool            mUseSerial;
 	uint8_t * const mPkgBuffer;
 	
 	const encoderMsg_t *const mEncoderMsg;
@@ -122,17 +117,11 @@ RobotDriver::~RobotDriver()
 		delete mSerial;
 		mSerial = NULL;
 	}
-	if(!mCan)
-	{
-		delete mCan;
-		mCan = NULL;
-	}
 }
 
 bool RobotDriver::initializeParams()
 {
 	mSerialPortName = nh_private.param<std::string>("port_name","/dev/ttyUSB0");
-	mUseSerial = nh_private.param<bool>("use_serial",true);
 	mWheelDiameter = nh_private.param<float>("wheel_diameter",0.1);
 	mRotationRadius = nh_private.param<float>("rotation_radius",0.175);
 	mEncoderResolution = nh_private.param<int>("encoder_resolution",2700); //减速比27 
@@ -151,10 +140,9 @@ void RobotDriver::run()
 	mSubCmd = nh.subscribe("/cmd_vel",1,&RobotDriver::twistCallback,this);
 	mPubOdom = nh.advertise<nav_msgs::Odometry>("/odom",50);
 	mSendSpeedTimer = nh.createTimer(ros::Duration(0.05), &RobotDriver::sendSpeedCallback, this);
-	if(mUseSerial)
-		initSerial(mSerialPortName, nh_private.param<int>("baud_rate",115200));
-	else
-		initCan(mSerialPortName);
+	
+	initSerial(mSerialPortName, nh_private.param<int>("baud_rate",115200));
+	
 	boost::thread parse_thread(boost::bind(&RobotDriver::readSerialThread, this));
 }
 
@@ -395,17 +383,6 @@ uint8_t RobotDriver::sumCheck(const uint8_t* buffer, size_t len)
 	return sum;
 }
 
-bool RobotDriver::initCan(std::string& port_name)
-{
-	mCan = new Can2serial;
-	
-//	if(!mCan->configPort(port_name,460800))
-//	{
-//		ROS_ERROR("[%s] open %s failed!",ros::this_node::getName().c_str(), port_name.c_str());
-//		return false;
-//	}
-	return true;
-}
 
 bool RobotDriver::initSerial(string& port_name,int baud_rate)
 {
