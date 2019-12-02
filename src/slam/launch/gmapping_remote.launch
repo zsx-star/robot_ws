@@ -1,7 +1,9 @@
+<!-- xml -->
+
 <launch>
 
 	<include file="$(find keyboard_control)/launch/keyboard.launch"/>
 	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find slam)/rviz/gmapping.rviz"/>
-
+	
 
 </launch>
