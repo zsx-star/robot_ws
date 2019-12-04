@@ -167,7 +167,7 @@ void RobotDriver::sendSpeedCallback(const ros::TimerEvent&)
 	uint16_t y = fabs(linear_x)*coff;
 	uint16_t z = fabs(angular_z)*mRotationRadius*coff;
 	
-	if((ros::Time::now()-mLastTwistTime).toSec() > 0.2)
+	if((ros::Time::now()-mLastTwistTime).toSec() > 0.3)
 		y = z = 0.0;
 	
 	//byte2 is mode

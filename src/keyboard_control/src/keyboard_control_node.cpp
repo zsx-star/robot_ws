@@ -21,7 +21,7 @@ KeyboardControl::KeyboardControl():linear_state_(0), angular_state_(0), port_nam
   private_node.param("angular_max", angular_max_, 4.0);
   private_node.param("angular_step", angular_step_, 0.2);
 
-  private_node.param("rate", rate_, 10.0);
+  private_node.param("rate", rate_, 20.0);
 
   linear_scale_ = linear_min_;
   angular_scale_ = angular_min_;
