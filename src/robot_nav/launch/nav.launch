@@ -1,8 +1,0 @@
-<launch>
-
-	<include file="$(find slam)/launch/gmapping.launch"/>
-	<include file="$(find rplidar_ros)/launch/rplidar.launch"/>
-	<include file="$(find triwheel_robot_driver)/launch/robot_driver.launch"/>
-	
-	<node name="laser2base_tf" pkg="tf" type="static_transform_publisher" args="0.1 0 0.05 3.1415926 0 0 base_link laser 100"/>
-</launch>
