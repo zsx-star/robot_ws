@@ -16,9 +16,9 @@ find_package(OpenCV REQUIRED)
 include_directories(  ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS} )
 
 
-add_executable(my_publisher src/my_publisher.cpp)
-add_dependencies(my_publisher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(my_publisher ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
+add_executable(camera_driver_node src/camera_driver.cpp)
+add_dependencies(camera_driver_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(camera_driver_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
 )
 
 add_executable(cameraInfo_node  src/publish_cameraInfo.cpp)

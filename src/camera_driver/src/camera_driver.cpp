@@ -14,10 +14,7 @@ using namespace cv;
 class ImageTalker
 {
 public:
-	ImageTalker():
-		is_draw_center_(false),
-		cx_offset_(15),
-		cy_offset_(36)
+	ImageTalker()
 	{
 	}
 	void init(ros::NodeHandle& nh, ros::NodeHandle& nh_private,int cameraId)
@@ -25,12 +22,18 @@ public:
 		camera_id_ = cameraId;
 		
 		image_transport::ImageTransport it(nh);
-	
+		
 		std::string calibration_file_path;
-		nh_private.param<std::string>("calibration_file_path",calibration_file_path,"a.yaml");
+		nh_private.param<std::string>("calibration_file_path",calibration_file_path,"None.yaml");
 		nh_private.param<bool>("is_show_image",is_show_image_,false);
-		nh_private.param<bool>("is_draw_center",is_draw_center_,false);
 		nh_private.param<int>("frame_rate",frame_rate_,30);
+		nh_private.param<float>("image_scale", imageScale_, 1.0);
+		if(!ros::param::get("~image_resolution",imageResolution_))
+		{
+			imageResolution_[0] = 640;
+			imageResolution_[1] = 480;
+		}
+		ROS_INFO("image size: %d*%d",imageResolution_[0],imageResolution_[1]);
 	
 		ROS_INFO("%s",calibration_file_path.c_str());
 	
@@ -43,17 +46,9 @@ public:
 		{
 			pub_ = it.advertise("/image_rectified", 1);
 			new_camera_instrinsics_ = getOptimalNewCameraMatrix(camera_instrinsics_,distortion_coefficients_,imgSize_,1.0);
-			ROI_rects_ = cv::Rect(cx_offset_,cy_offset_,imgSize_.width-2*cx_offset_, imgSize_.height-2*cy_offset_);
 			is_rectify_ = true;
 		}
 		camera_info_pub_ = nh.advertise<sensor_msgs::CameraInfo>("/camera_info", 1);
-		if(is_rectify_)
-			timer_ = nh.createTimer(ros::Duration(0.2), &ImageTalker::timerCallback, this);
-	}
-	
-	void timerCallback(const ros::TimerEvent& event)
-	{
-		this->pubCameraInfo();
 	}
 	
 	void run()
@@ -66,13 +61,14 @@ public:
 			return;
 		}
 		
-		//cap.set(CV_CAP_PROP_FPS, 5);
-		//cap.set(CV_CAP_PROP_FRAME_WIDTH, 3840);
-		//cap.set(CV_CAP_PROP_FRAME_HEIGHT, 1080);
+		cap.set(CV_CAP_PROP_FPS, frame_rate_);
+		cap.set(CV_CAP_PROP_FRAME_WIDTH, imageResolution_[0]);
+		cap.set(CV_CAP_PROP_FRAME_HEIGHT, imageResolution_[1]);
 		
 		cv::Mat frame,src;
 		sensor_msgs::ImagePtr msg;
-
+		cv::Size target_size(int(imageResolution_[0]*imageScale_), int(imageResolution_[1]*imageScale_));
+		
 		ros::Rate loop_rate(frame_rate_);
 		
 		while (ros::ok())
@@ -85,17 +81,12 @@ public:
 				if(is_rectify_)
 				{
 					cv::undistort(frame, src, camera_instrinsics_, distortion_coefficients_,new_camera_instrinsics_);
-					msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", src(ROI_rects_)).toImageMsg();
+					if(imageScale_!=1.0)
+						cv::resize(src, src, target_size);
+						
+					msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", src).toImageMsg();
 					if(is_show_image_) 
 					{
-						if(is_draw_center_)
-						{
-							int cx = camera_info_msg_.K[2];
-							int cy = camera_info_msg_.K[5];
-							cv::line(src,Point(src.cols/2-10,cy),Point(src.cols/2+10,cy),Scalar(255,0,0),1,8);
-							cv::line(src,Point(src.cols/2,cy-10),Point(src.cols/2,cy+10),Scalar(255,0,0),1,8);
-							cv::circle(src, Point(src.cols/2,cy), 15, cv::Scalar(0,0,255), 1);
-						}
 						cv::namedWindow("image_rectified",cv::WINDOW_NORMAL); 
 						cv::imshow("image_rectified",src); cv::waitKey(1);
 						//cv::namedWindow("image_raw",cv::WINDOW_NORMAL); 
@@ -104,6 +95,8 @@ public:
 				}
 				else
 				{
+					if(imageScale_!=1.0)
+						cv::resize(frame, frame, target_size);
 					msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
 					if(is_show_image_) 
 					{
@@ -153,40 +146,6 @@ public:
 		fs.release();	//释放
 		return true;
 	}
-	
-	void pubCameraInfo()
-	{
-		static bool instrinsics_parsed = false;
-		if (instrinsics_parsed)
-			goto PublishCameraInfo;
-		
-		for (int row = 0; row < 3; row++)
-			for (int col = 0; col < 3; col++)
-				camera_info_msg_.K[row * 3 + col] = camera_instrinsics_.at<double>(row, col);
-
-		for (int row = 0; row < 3; row++)
-			for (int col = 0; col < 4; col++)
-			{
-				if (col == 3)
-					camera_info_msg_.P[row * 4 + col] = 0.0f;
-				else
-					camera_info_msg_.P[row * 4 + col] = camera_instrinsics_.at<double>(row, col);
-			}
-		camera_info_msg_.P[2] -= cx_offset_; //cx
-		camera_info_msg_.P[6] -= cy_offset_; //cy
-		for (int row = 0; row < distortion_coefficients_.rows; row++)
-			for (int col = 0; col < distortion_coefficients_.cols; col++)
-				camera_info_msg_.D.push_back(distortion_coefficients_.at<double>(row, col));
-		camera_info_msg_.distortion_model = distModel_;
-		camera_info_msg_.height = imgSize_.height;
-		camera_info_msg_.width = imgSize_.width;
-		instrinsics_parsed = true;
-		camera_info_msg_.header.frame_id = "camera";
-	
-	PublishCameraInfo:
-		camera_info_msg_.header.stamp = ros::Time::now();
-		camera_info_pub_.publish(camera_info_msg_);
-	}
 
 private:
 	bool is_rectify_;
@@ -200,14 +159,11 @@ private:
 	std::string distModel_;
 	sensor_msgs::CameraInfo camera_info_msg_;
 	cv::Size imgSize_;
+	float imageScale_;
+	std::vector<int> imageResolution_;
 	int camera_id_;
 	int frame_rate_;
 	bool is_show_image_;
-	bool is_draw_center_;
-	
-	int cx_offset_;
-	int cy_offset_;
-	cv::Rect ROI_rects_;
 };
 
 
