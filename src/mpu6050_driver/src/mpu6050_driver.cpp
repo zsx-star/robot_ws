@@ -54,7 +54,6 @@ private:
 	 serial::Serial ser;
 	std::string port;
 	std::string tf_parent_frame_id;
-	std::string tf_frame_id;
 	std::string frame_id;
 	bool broadcast_tf;
 	double linear_acceleration_stddev;
@@ -82,7 +81,6 @@ bool ImuDriver::init()
 	ros::NodeHandle private_node_handle("~");
 	private_node_handle.param<std::string>("port", port, "/dev/ttyACM0");
 	private_node_handle.param<std::string>("tf_parent_frame_id", tf_parent_frame_id, "imu_base");
-	private_node_handle.param<std::string>("tf_frame_id", tf_frame_id, "imu_link");
 	private_node_handle.param<std::string>("frame_id", frame_id, "imu_link");
 	private_node_handle.param<bool>("broadcast_tf", broadcast_tf, true);
 	private_node_handle.param<double>("linear_acceleration_stddev", linear_acceleration_stddev, 0.0);
@@ -121,7 +119,7 @@ void ImuDriver::run()
 		if (ser.isOpen())
 		{
 			int len = ser.read(rawDataBuf, MaxLen);
-			std::cout << len << std::endl;
+//			std::cout << len << std::endl;
 			if(len <=0)
 			{
 				loop_rate.sleep();
@@ -281,7 +279,7 @@ void ImuDriver::publish_msg()
 	if (broadcast_tf)
 	{
 		transform.setRotation(tf::Quaternion(quat.x(), quat.y(), quat.z(), quat.w()));
-		tf_br.sendTransform(tf::StampedTransform(transform, time, tf_parent_frame_id, tf_frame_id));
+		tf_br.sendTransform(tf::StampedTransform(transform, time, tf_parent_frame_id, frame_id));
 	}
 //	ROS_INFO("publish");
 }

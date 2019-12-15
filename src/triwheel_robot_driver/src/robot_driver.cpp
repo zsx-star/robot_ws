@@ -79,6 +79,7 @@ private:
 	
 	nav_msgs::Odometry mOdom;
 	std::string mOdomFrameId, mBaseFrameId;
+	std::string mOdomTopicName;
 
 	serial::Serial* mSerial;
 	std::string     mSerialPortName;
@@ -127,6 +128,7 @@ bool RobotDriver::initializeParams()
 	mEncoderResolution = nh_private.param<int>("encoder_resolution",2700); //减速比27 
 	mBaseFrameId = nh_private.param<std::string>("base_frame","base_link");
 	mOdomFrameId = nh_private.param<std::string>("odom_frame","odom");
+	mOdomTopicName = nh_private.param<std::string>("odom_topic", "/odom");
 	
 	mBase2wheelMatrix << 1.0         , 0.0         , -mRotationRadius,
 						 -sin(M_PI/6),  cos(M_PI/6), -mRotationRadius,
@@ -138,7 +140,7 @@ void RobotDriver::run()
 {
 	initializeParams();
 	mSubCmd = nh.subscribe("/cmd_vel",1,&RobotDriver::twistCallback,this);
-	mPubOdom = nh.advertise<nav_msgs::Odometry>("/odom",50);
+	mPubOdom = nh.advertise<nav_msgs::Odometry>(mOdomTopicName, 50);
 	mSendSpeedTimer = nh.createTimer(ros::Duration(0.05), &RobotDriver::sendSpeedCallback, this);
 	
 	initSerial(mSerialPortName, nh_private.param<int>("baud_rate",115200));
