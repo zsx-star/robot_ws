@@ -100,6 +100,7 @@ private:
 	
 	ros::Time mLastTwistTime;
 	geometry_msgs::Twist mCurrentTwist;
+	bool mPublishTf;
 };
 
 RobotDriver::RobotDriver():
@@ -129,6 +130,7 @@ bool RobotDriver::initializeParams()
 	mBaseFrameId = nh_private.param<std::string>("base_frame","base_link");
 	mOdomFrameId = nh_private.param<std::string>("odom_frame","odom");
 	mOdomTopicName = nh_private.param<std::string>("odom_topic", "/odom");
+	mPublishTf = nh_private.param<bool>("publish_tf", true);
 	
 	mBase2wheelMatrix << 1.0         , 0.0         , -mRotationRadius,
 						 -sin(M_PI/6),  cos(M_PI/6), -mRotationRadius,
@@ -343,23 +345,26 @@ void RobotDriver::handleEncoderMsg()
 		mPose[2] += 2*M_PI;
 	
 	//cout << mPose[0] << "\t" << mPose[1] << "\t" <<  mPose[2]*180.0/M_PI << endl;
-	
-	mTransformStamped.header.stamp = current_time;
-	mTransformStamped.header.frame_id = mOdomFrameId;
-	mTransformStamped.child_frame_id = mBaseFrameId;
-	mTransformStamped.transform.translation.x = mPose[1];
-	mTransformStamped.transform.translation.y = -mPose[0];
-	mTransformStamped.transform.translation.z = 0.0;
 	tf::Quaternion q;
 	q.setRPY(0, 0, mPose[2]);
-	mTransformStamped.transform.rotation.x = q.x();
-	mTransformStamped.transform.rotation.y = q.y();
-	mTransformStamped.transform.rotation.z = q.z();
-	mTransformStamped.transform.rotation.w = q.w();
+		
+	if(mPublishTf)
+	{
+		mTransformStamped.header.stamp = current_time;
+		mTransformStamped.header.frame_id = mOdomFrameId;
+		mTransformStamped.child_frame_id = mBaseFrameId;
+		mTransformStamped.transform.translation.x = mPose[1];
+		mTransformStamped.transform.translation.y = -mPose[0];
+		mTransformStamped.transform.translation.z = 0.0;
+		
+		mTransformStamped.transform.rotation.x = q.x();
+		mTransformStamped.transform.rotation.y = q.y();
+		mTransformStamped.transform.rotation.z = q.z();
+		mTransformStamped.transform.rotation.w = q.w();
+		mTfBroadcaster.sendTransform(mTransformStamped);
+	}
 
-	mTfBroadcaster.sendTransform(mTransformStamped);
-
-	mOdom.header.frame_id = mOdomFrameId;
+	mOdom.header.frame_id = mOdomFrameId; 
 	mOdom.child_frame_id = mBaseFrameId;
 	mOdom.header.stamp = current_time;
 	mOdom.pose.pose.position.x = mPose[1];
