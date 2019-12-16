@@ -6,6 +6,7 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <Eigen/Dense>
+#include <sensor_msgs/Imu.h>
 #include <boost/thread.hpp>
 #include <cmath>
 
@@ -57,6 +58,7 @@ private:
 	bool initializeParams();
 	bool initSerial(string& port_name,int baud_rate);
 	void twistCallback(const geometry_msgs::Twist::ConstPtr& cmd);
+	void imuCallback(const sensor_msgs::Imu::ConstPtr& imu);
 	void sendSpeedCallback(const ros::TimerEvent& );
 	void readSerialThread();
 	
@@ -71,6 +73,7 @@ private:
 	ros::NodeHandle nh;
 	ros::NodeHandle nh_private;
 	ros::Subscriber mSubCmd;
+	ros::Subscriber mSubImu;
 	ros::Publisher mPubOdom;
 	ros::Timer mSendSpeedTimer;
 	
@@ -101,6 +104,7 @@ private:
 	ros::Time mLastTwistTime;
 	geometry_msgs::Twist mCurrentTwist;
 	bool mPublishTf;
+	tf::Quaternion mImuOrien;
 };
 
 RobotDriver::RobotDriver():
@@ -154,6 +158,7 @@ void RobotDriver::run()
 {
 	initializeParams();
 	mSubCmd = nh.subscribe("/cmd_vel",1,&RobotDriver::twistCallback,this);
+	mSubImu = nh.subscribe("/imu/data",1, &RobotDriver::imuCallback, this);
 	mPubOdom = nh.advertise<nav_msgs::Odometry>(mOdomTopicName, 50);
 	mSendSpeedTimer = nh.createTimer(ros::Duration(0.05), &RobotDriver::sendSpeedCallback, this);
 	
@@ -162,11 +167,15 @@ void RobotDriver::run()
 	boost::thread parse_thread(boost::bind(&RobotDriver::readSerialThread, this));
 }
 
-
 void RobotDriver::twistCallback(const geometry_msgs::Twist::ConstPtr& cmd)
 {
 	mLastTwistTime = ros::Time::now();
 	mCurrentTwist = *cmd;
+}
+
+void RobotDriver::imuCallback(const sensor_msgs::Imu::ConstPtr& imu)
+{
+	tf::quaternionMsgToTF(imu->orientation, mImuOrien);
 }
 
 void RobotDriver::sendSpeedCallback(const ros::TimerEvent&)
@@ -357,8 +366,10 @@ void RobotDriver::handleEncoderMsg()
 		mPose[2] += 2*M_PI;
 	
 	//cout << mPose[0] << "\t" << mPose[1] << "\t" <<  mPose[2]*180.0/M_PI << endl;
-	tf::Quaternion q;
-	q.setRPY(0, 0, mPose[2]);
+//	tf::Quaternion q;
+//	q.setRPY(0, 0, mPose[2]);
+	
+	tf::Quaternion &q = mImuOrien;
 		
 	if(mPublishTf)
 	{
