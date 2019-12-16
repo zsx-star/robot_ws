@@ -73,7 +73,6 @@ private:
 ImuDriver::ImuDriver()
 {
 	zero_orientation_set = false;
-	use_relative_angle = false;
 }
 
 bool ImuDriver::init()
@@ -87,8 +86,9 @@ bool ImuDriver::init()
 	private_node_handle.param<double>("angular_velocity_stddev", angular_velocity_stddev, 0.0);
 	private_node_handle.param<double>("orientation_stddev", orientation_stddev, 0.0);
 	private_node_handle.param<int>("baud_rate",baud_rate, 115200);
+	private_node_handle.param<bool>("use_relative_angle", use_relative_angle, false);
 
-	ros::NodeHandle nh("imu");
+	ros::NodeHandle nh;
 	imu_pub = nh.advertise<sensor_msgs::Imu>("/imu/data", 100);
 	imu_temperature_pub = nh.advertise<sensor_msgs::Temperature>("temperature", 50);
 	
@@ -146,7 +146,6 @@ void ImuDriver::run()
 			if(ser.isOpen())
 				ROS_INFO("Serial port %s initialized and opened. baudrate: %d",ser.getPort().c_str(),ser.getBaudrate());
 		}
-		ros::spinOnce();
 		loop_rate.sleep();
 	}
 	delete [] rawDataBuf;
@@ -226,16 +225,6 @@ void ImuDriver::pkgParse(const uint8_t* pkg, int len)
 	last_type = type;
 }
 
-
-int main(int argc, char** argv)
-{
-	ros::init(argc, argv, "mpu6050_serial_to_imu_node");
-	ImuDriver imu;
-	if(imu.init())
-		imu.run();
-	return 0;
-}
-
 void ImuDriver::publish_msg()
 {
 
@@ -273,7 +262,6 @@ void ImuDriver::publish_msg()
 
 	imu_pub.publish(imu);
 
-	
 	tf::Transform transform;
 	transform.setOrigin(tf::Vector3(0,0,0));
 	
@@ -283,4 +271,14 @@ void ImuDriver::publish_msg()
 		tf_br.sendTransform(tf::StampedTransform(transform, time, tf_parent_frame_id, frame_id));
 	}
 //	ROS_INFO("publish");
+}
+
+
+int main(int argc, char** argv)
+{
+	ros::init(argc, argv, "mpu6050_serial_to_imu_node");
+	ImuDriver imu;
+	if(imu.init())
+		imu.run();
+	return 0;
 }

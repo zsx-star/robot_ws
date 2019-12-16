@@ -132,6 +132,18 @@ bool RobotDriver::initializeParams()
 	mOdomTopicName = nh_private.param<std::string>("odom_topic", "/odom");
 	mPublishTf = nh_private.param<bool>("publish_tf", true);
 	
+	std::vector<double> pose_cov,twist_cov;
+	ros::param::get("~pose_cov", pose_cov);
+	ros::param::get("~twist_cov",twist_cov);
+	
+	for(size_t i=0; i<36; ++i)
+	{
+		mOdom.pose.covariance[i] = pose_cov[i];
+		mOdom.twist.covariance[i] = twist_cov[i];
+	}
+	
+	
+	
 	mBase2wheelMatrix << 1.0         , 0.0         , -mRotationRadius,
 						 -sin(M_PI/6),  cos(M_PI/6), -mRotationRadius,
 						 -cos(M_PI/3), -sin(M_PI/3), -mRotationRadius;
