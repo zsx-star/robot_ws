@@ -231,7 +231,7 @@ void ImuDriver::publish_msg()
 	double roll = -1.0* stcAngle.Angle[1]/32768*M_PI;
 	double yaw = 1.0* stcAngle.Angle[2]/32768*M_PI;
 	double pitch = 1.0* stcAngle.Angle[0]/32768*M_PI;
-	ROS_INFO("roll: %.2f\t yaw: %.2f\t pitch: %.2f", roll*180.0/M_PI, yaw*180.0/M_PI, pitch*180.0/M_PI);
+//	ROS_INFO("roll: %.2f\t yaw: %.2f\t pitch: %.2f", roll*180.0/M_PI, yaw*180.0/M_PI, pitch*180.0/M_PI);
 	Eigen::Quaterniond quat = euler2Quaternion(roll, yaw, pitch);
 
 	if (!zero_orientation_set)
