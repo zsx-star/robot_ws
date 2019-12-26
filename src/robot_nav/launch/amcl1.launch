@@ -14,7 +14,7 @@
 		<param name="update_min_d" value="0.03"/>  <!--执行一次滤波器更新所需的平移距离 -->
 		<param name="update_min_a" value="0.05"/>   <!--执行一次滤波器更新所需的旋转角度 rad -->
 		<param name="odom_frame_id" value="odom"/>
-		<param name="resample_interval" value="2"/>
+		<param name="resample_interval" value="15"/>
 		<!-- Increase tolerance because the computer can get quite busy -->
 		<param name="transform_tolerance" value="0.1"/>  <!--发布变换的时间，以指示此变换在未来有效 -->
 		<param name="recovery_alpha_slow" value="0.001"/>
@@ -34,7 +34,7 @@
 		
 		
 		<!-- 激光雷达参数 -->
-		<param name="laser_max_beams" value="60"/>  <!--更新过滤器时，要在每圈使用多少均匀间隔的光束 -->
+		<param name="laser_max_beams" value="100"/>  <!--更新过滤器时，要在每圈使用多少均匀间隔的光束 -->
 		<param name="laser_min_range" value="-1.0"/> <!-- -1.0 表示使用激光雷达上报的范围 -->
 		<param name="laser_max_range" value="-1.0"/>
 		

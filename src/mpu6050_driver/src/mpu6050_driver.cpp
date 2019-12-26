@@ -227,7 +227,6 @@ void ImuDriver::pkgParse(const uint8_t* pkg, int len)
 
 void ImuDriver::publish_msg()
 {
-
 	double roll = -1.0* stcAngle.Angle[1]/32768*M_PI;
 	double yaw = 1.0* stcAngle.Angle[2]/32768*M_PI;
 	double pitch = 1.0* stcAngle.Angle[0]/32768*M_PI;

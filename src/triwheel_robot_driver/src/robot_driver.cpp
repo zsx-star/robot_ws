@@ -3,6 +3,8 @@
 #include <serial/serial.h>
 #include <geometry_msgs/Twist.h>
 #include <tf/transform_broadcaster.h>
+#include "tf2/convert.h"
+#include "tf2/utils.h"
 #include <geometry_msgs/TransformStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <Eigen/Dense>
@@ -104,7 +106,7 @@ private:
 	ros::Time mLastTwistTime;
 	geometry_msgs::Twist mCurrentTwist;
 	bool mPublishTf;
-	tf::Quaternion mImuOrien;
+	double mImuYaw;
 };
 
 RobotDriver::RobotDriver():
@@ -175,7 +177,7 @@ void RobotDriver::twistCallback(const geometry_msgs::Twist::ConstPtr& cmd)
 
 void RobotDriver::imuCallback(const sensor_msgs::Imu::ConstPtr& imu)
 {
-	tf::quaternionMsgToTF(imu->orientation, mImuOrien);
+	mImuYaw = tf2::getYaw(imu->orientation);
 }
 
 void RobotDriver::sendSpeedCallback(const ros::TimerEvent&)
@@ -369,7 +371,8 @@ void RobotDriver::handleEncoderMsg()
 //	tf::Quaternion q;
 //	q.setRPY(0, 0, mPose[2]);
 	
-	tf::Quaternion &q = mImuOrien;
+	tf2::Quaternion q;
+	q.setRPY(0.0,0.0,mImuYaw);
 		
 	if(mPublishTf)
 	{
@@ -379,11 +382,8 @@ void RobotDriver::handleEncoderMsg()
 		mTransformStamped.transform.translation.x = mPose[1];
 		mTransformStamped.transform.translation.y = -mPose[0];
 		mTransformStamped.transform.translation.z = 0.0;
-		
-		mTransformStamped.transform.rotation.x = q.x();
-		mTransformStamped.transform.rotation.y = q.y();
-		mTransformStamped.transform.rotation.z = q.z();
-		mTransformStamped.transform.rotation.w = q.w();
+		mTransformStamped.transform.rotation = tf2::toMsg(q);
+	
 		mTfBroadcaster.sendTransform(mTransformStamped);
 	}
 
@@ -393,10 +393,7 @@ void RobotDriver::handleEncoderMsg()
 	mOdom.pose.pose.position.x = mPose[1];
 	mOdom.pose.pose.position.y = -mPose[0];
 	mOdom.pose.pose.position.z = 0;
-	mOdom.pose.pose.orientation.x = q.getX();
-	mOdom.pose.pose.orientation.y = q.getY();
-	mOdom.pose.pose.orientation.z = q.getZ();
-	mOdom.pose.pose.orientation.w = q.getW();
+	tf2::convert(q, mOdom.pose.pose.orientation);
 	mOdom.twist.twist.linear.x = speed[1];
 	mOdom.twist.twist.linear.y = -speed[0];
 	mOdom.twist.twist.angular.z = speed[2];
