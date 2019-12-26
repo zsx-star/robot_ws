@@ -6,45 +6,57 @@
 		<remap from="scan" to="$(arg scan_topic)"/>
 		<param name="use_map_topic" value="$(arg use_map_topic)"/>
 		<!-- Publish scans from best pose at a max of 10 Hz -->
-		<param name="odom_model_type" value="diff"/>
-		<param name="odom_alpha5" value="0.1"/>
+		
+		<!-- 滤波器参数 -->
 		<param name="gui_publish_rate" value="10.0"/>
-		<param name="laser_max_beams" value="60"/>  <!--更新过滤器时，要在每次使用中使用多少均匀间隔的光束 -->
-		<param name="laser_max_range" value="12.0"/>
 		<param name="min_particles" value="500"/>
 		<param name="max_particles" value="2000"/>
+		<param name="update_min_d" value="0.10"/>  <!--执行一次滤波器更新所需的平移距离 -->
+		<param name="update_min_a" value="0.05"/>   <!--执行一次滤波器更新所需的旋转角度 rad -->
+		<param name="odom_frame_id" value="odom"/>
+		<param name="resample_interval" value="2"/>
+		<!-- Increase tolerance because the computer can get quite busy -->
+		<param name="transform_tolerance" value="0.1"/>  <!--发布变换的时间，以指示此变换在未来有效 -->
+		<param name="recovery_alpha_slow" value="0.001"/>
+		<param name="recovery_alpha_fast" value="0.1"/>
+		
 		<param name="kld_err" value="0.01"/>     <!-- 真实分布与估计分布之间的最大误差-->
 		<param name="kld_z" value="0.99"/> 
+		
+		<!-- 里程计模型参数 -->
+		<param name="odom_model_type" value="diff"/>
 		<param name="odom_alpha1" value="0.2"/>
 		<param name="odom_alpha2" value="0.2"/>
 		<!-- translation std dev, m -->
 		<param name="odom_alpha3" value="0.2"/>
 		<param name="odom_alpha4" value="0.2"/>
-		<param name="laser_z_hit" value="0.5"/>
-		<param name="laser_z_short" value="0.05"/>
+		<param name="odom_alpha5" value="0.1"/>
+		
+		
+		<!-- 激光雷达参数 -->
+		<param name="laser_max_beams" value="30"/>  <!--更新过滤器时，要在每圈使用多少均匀间隔的光束 -->
+		<param name="laser_min_range" value="-1.0"/> <!-- -1.0 表示使用激光雷达上报的范围 -->
+		<param name="laser_max_range" value="-1.0"/>
+		
+		<param name="laser_z_hit" value="0.95"/> <!--高斯分布占比 -->
+		<param name="laser_z_rand" value="0.05"/> <!--无法解释的随机噪声 -->
+		
+		<param name="laser_z_short" value="0.1"/>
 		<param name="laser_z_max" value="0.05"/>
-		<param name="laser_z_rand" value="0.5"/>
+		
 		<param name="laser_sigma_hit" value="0.2"/>
 		<param name="laser_lambda_short" value="0.1"/>
 		<param name="laser_model_type" value="likelihood_field"/> 
-		<!-- <param name="laser_model_type" value="beam"/> -->
 		<param name="laser_likelihood_max_dist" value="2.0"/>   <!-- 地图上测量障碍物膨胀的最大距离-->
-		<param name="update_min_d" value="0.25"/>  <!--执行一次滤波器更新所需的平移距离 -->
-		<param name="update_min_a" value="0.2"/>   <!--执行一次滤波器更新所需的旋转角度 rad -->
-		<param name="odom_frame_id" value="odom"/>
-		<param name="resample_interval" value="1"/>
-		<!-- Increase tolerance because the computer can get quite busy -->
-		<param name="transform_tolerance" value="0.1"/>  <!--发布变换的时间，以指示此变换在未来有效 -->
-		<param name="recovery_alpha_slow" value="0.0"/>
-		<param name="recovery_alpha_fast" value="0.0"/>
-
-		<param name="initial_pose_x" value="14.016"/> 
-		<param name="initial_pose_y" value="25.7500"/>
-		<param name="initial_pose_a" value="-3.0"/>
 		
-		<param name="initial_cov_xx" value="4"/> 
-		<param name="initial_cov_yy" value="4"/>
-		<param name="initial_cov_aa" value="4"/>
+		<!-- 机器人初始参数 -->
+		<param name="initial_pose_x" value="0.0"/>
+		<param name="initial_pose_y" value="0.0"/>
+		<param name="initial_pose_a" value="-0.0"/>
+		
+		<param name="initial_cov_xx" value="1"/> 
+		<param name="initial_cov_yy" value="1"/>
+		<param name="initial_cov_aa" value="2"/>
 
 	</node>
 </launch>
