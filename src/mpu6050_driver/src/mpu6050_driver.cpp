@@ -77,19 +77,20 @@ ImuDriver::ImuDriver()
 
 bool ImuDriver::init()
 {
-	ros::NodeHandle private_node_handle("~");
-	private_node_handle.param<std::string>("port", port, "/dev/ttyACM0");
-	private_node_handle.param<std::string>("tf_parent_frame_id", tf_parent_frame_id, "imu_base");
-	private_node_handle.param<std::string>("frame_id", frame_id, "imu_link");
-	private_node_handle.param<bool>("broadcast_tf", broadcast_tf, true);
-	private_node_handle.param<double>("linear_acceleration_stddev", linear_acceleration_stddev, 0.0);
-	private_node_handle.param<double>("angular_velocity_stddev", angular_velocity_stddev, 0.0);
-	private_node_handle.param<double>("orientation_stddev", orientation_stddev, 0.0);
-	private_node_handle.param<int>("baud_rate",baud_rate, 115200);
-	private_node_handle.param<bool>("use_relative_angle", use_relative_angle, false);
+	ros::NodeHandle nh_private("~");
+	nh_private.param<std::string>("port", port, "/dev/ttyACM0");
+	nh_private.param<std::string>("tf_parent_frame_id", tf_parent_frame_id, "imu_base");
+	nh_private.param<std::string>("frame_id", frame_id, "imu_link");
+	nh_private.param<bool>("broadcast_tf", broadcast_tf, true);
+	nh_private.param<double>("linear_acceleration_stddev", linear_acceleration_stddev, 0.0);
+	nh_private.param<double>("angular_velocity_stddev", angular_velocity_stddev, 0.0);
+	nh_private.param<double>("orientation_stddev", orientation_stddev, 0.0);
+	nh_private.param<int>("baud_rate",baud_rate, 115200);
+	nh_private.param<bool>("use_relative_angle", use_relative_angle, false);
+	std::string topic_name = nh_private.param<std::string>("topic_name", "/imu/raw_data");
 
 	ros::NodeHandle nh;
-	imu_pub = nh.advertise<sensor_msgs::Imu>("/imu/data", 100);
+	imu_pub = nh.advertise<sensor_msgs::Imu>(topic_name, 100);
 	imu_temperature_pub = nh.advertise<sensor_msgs::Temperature>("temperature", 50);
 	
 	imu.linear_acceleration_covariance[0] = linear_acceleration_stddev;
