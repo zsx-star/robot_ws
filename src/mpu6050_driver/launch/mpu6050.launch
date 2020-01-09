@@ -9,7 +9,7 @@
 		<param name="frame_id" value="imu"/>
 		<param name="use_relative_angle" value="false"/>
 		<param name="broadcast_tf" value="true"/>
-		<param name="topic_name" value="/imu/data"/>
+		<param name="topic_name" value="/imu/data_raw"/>
 		
 	</node>
 

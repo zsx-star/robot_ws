@@ -85,6 +85,7 @@ private:
 	nav_msgs::Odometry mOdom;
 	std::string mOdomFrameId, mBaseFrameId;
 	std::string mOdomTopicName;
+	std::string mImuTopicName;
 
 	serial::Serial* mSerial;
 	std::string     mSerialPortName;
@@ -137,6 +138,7 @@ bool RobotDriver::initializeParams()
 	mOdomFrameId = nh_private.param<std::string>("odom_frame","odom");
 	mOdomTopicName = nh_private.param<std::string>("odom_topic", "/odom");
 	mPublishTf = nh_private.param<bool>("publish_tf", true);
+	mImuTopicName = nh_private.param<std::string>("imu_topic","/imu/data_raw");
 	
 	std::vector<double> pose_cov,twist_cov;
 	ros::param::get("~pose_cov", pose_cov);
@@ -160,7 +162,7 @@ void RobotDriver::run()
 {
 	initializeParams();
 	mSubCmd = nh.subscribe("/cmd_vel",1,&RobotDriver::twistCallback,this);
-	mSubImu = nh.subscribe("/imu/data",1, &RobotDriver::imuCallback, this);
+	mSubImu = nh.subscribe(mImuTopicName,5, &RobotDriver::imuCallback, this);
 	mPubOdom = nh.advertise<nav_msgs::Odometry>(mOdomTopicName, 50);
 	mSendSpeedTimer = nh.createTimer(ros::Duration(0.05), &RobotDriver::sendSpeedCallback, this);
 	
@@ -373,7 +375,7 @@ void RobotDriver::handleEncoderMsg()
 	
 	tf2::Quaternion q;
 	q.setRPY(0.0,0.0,mImuYaw);
-		
+	
 	if(mPublishTf)
 	{
 		mTransformStamped.header.stamp = current_time;

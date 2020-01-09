@@ -87,7 +87,7 @@ bool ImuDriver::init()
 	nh_private.param<double>("orientation_stddev", orientation_stddev, 0.0);
 	nh_private.param<int>("baud_rate",baud_rate, 115200);
 	nh_private.param<bool>("use_relative_angle", use_relative_angle, false);
-	std::string topic_name = nh_private.param<std::string>("topic_name", "/imu/raw_data");
+	std::string topic_name = nh_private.param<std::string>("topic_name", "/imu/data_raw");
 
 	ros::NodeHandle nh;
 	imu_pub = nh.advertise<sensor_msgs::Imu>(topic_name, 100);
