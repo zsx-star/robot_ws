@@ -107,6 +107,7 @@ private:
 	ros::Time mLastTwistTime;
 	geometry_msgs::Twist mCurrentTwist;
 	bool mPublishTf;
+	bool mUseImuYaw;
 	double mImuYaw;
 };
 
@@ -139,6 +140,7 @@ bool RobotDriver::initializeParams()
 	mOdomTopicName = nh_private.param<std::string>("odom_topic", "/odom");
 	mPublishTf = nh_private.param<bool>("publish_tf", true);
 	mImuTopicName = nh_private.param<std::string>("imu_topic","/imu/data_raw");
+	mUseImuYaw = nh_private.param<bool>("use_imu_yaw",true);
 	
 	std::vector<double> pose_cov,twist_cov;
 	ros::param::get("~pose_cov", pose_cov);
@@ -150,8 +152,6 @@ bool RobotDriver::initializeParams()
 		mOdom.twist.covariance[i] = twist_cov[i];
 	}
 	
-	
-	
 	mBase2wheelMatrix << 1.0         , 0.0         , -mRotationRadius,
 						 -sin(M_PI/6),  cos(M_PI/6), -mRotationRadius,
 						 -cos(M_PI/3), -sin(M_PI/3), -mRotationRadius;
@@ -162,7 +162,8 @@ void RobotDriver::run()
 {
 	initializeParams();
 	mSubCmd = nh.subscribe("/cmd_vel",1,&RobotDriver::twistCallback,this);
-	mSubImu = nh.subscribe(mImuTopicName,5, &RobotDriver::imuCallback, this);
+	if(mUseImuYaw)
+		mSubImu = nh.subscribe(mImuTopicName,5, &RobotDriver::imuCallback, this);
 	mPubOdom = nh.advertise<nav_msgs::Odometry>(mOdomTopicName, 50);
 	mSendSpeedTimer = nh.createTimer(ros::Duration(0.05), &RobotDriver::sendSpeedCallback, this);
 	
@@ -369,12 +370,13 @@ void RobotDriver::handleEncoderMsg()
 	else if(mPose[2] < -2*M_PI)
 		mPose[2] += 2*M_PI;
 	
-	//cout << mPose[0] << "\t" << mPose[1] << "\t" <<  mPose[2]*180.0/M_PI << endl;
-//	tf::Quaternion q;
-//	q.setRPY(0, 0, mPose[2]);
+	// 如需要使用imu航向角，用mImuYaw 覆盖轮速里程计的到的角度
+	if(mUseImuYaw)
+		mPose[2] = mImuYaw; 
 	
+	//cout << mPose[0] << "\t" << mPose[1] << "\t" <<  mPose[2]*180.0/M_PI << endl;
 	tf2::Quaternion q;
-	q.setRPY(0.0,0.0,mImuYaw);
+	q.setRPY(0, 0, mPose[2]);
 	
 	if(mPublishTf)
 	{
