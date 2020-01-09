@@ -1,0 +1,22 @@
+<!-- -->
+<launch>
+	<arg name="port" default="/dev/ttyUSB1"/>
+	
+	<node pkg="mpu6050_driver" type="mpu6050_driver_node" name="mpu6050_drive_node"  output="screen">
+		<param name="port" value="$(arg port)"/>
+		<param name="baud_rate" value="115200"/>
+		<param name="parent_frame_id" value="imu_base"/>
+		<param name="frame_id" value="imu"/>
+		<param name="use_relative_angle" value="false"/>
+		<param name="broadcast_tf" value="false"/>
+		
+	</node>
+	
+	<node name="imu_filter_madgwick" pkg="imu_filter_madgwick" type="imu_filter_node">
+		<param name="stateless" value="false"/>
+		<param name="use_mag" value="false"/>
+		<param name="world_frame" value="imu_base"/>
+	<node>
+
+
+</launch>
