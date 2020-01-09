@@ -36,6 +36,8 @@
 		<param name="stateless" value="false"/>
 		<param name="use_mag" value="false"/>
 		<param name="world_frame" value="enu"/>
+		<param name="publish_tf" value="false"/>
+		
 	</node>
 	
 	<node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf">
