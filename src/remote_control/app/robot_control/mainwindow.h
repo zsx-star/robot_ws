@@ -4,11 +4,14 @@
 #include <QMainWindow>
 #include <QTcpSocket>
 #include <QCloseEvent>
+#include <iostream>
 #include <string>
 #include <mutex>
 #include <thread>
 #include <chrono>
 #include <vector>
+
+#include "performancerecorder.h"
 
 namespace Ui {
 class MainWindow;
@@ -23,6 +26,9 @@ public:
     ~MainWindow();
     void sendCmdThread();
     virtual void closeEvent(QCloseEvent *event);
+private:
+    void loadUserPerformance();
+    void dumpUserPerformance();
 
 private slots:
     void on_pushButton_connect_clicked(bool checked);
@@ -43,6 +49,10 @@ private slots:
 
     void on_pushButton_right_released();
 
+    void keyPressEvent(QKeyEvent *event);
+    void keyReleaseEvent(QKeyEvent *event);
+
+
 private:
     Ui::MainWindow *ui;
     QTcpSocket *socket;
@@ -52,6 +62,7 @@ private:
     bool send_cmd_thread_flag;
     std::vector<bool> keys_state;
     std::vector<std::mutex> mutexes;
+    PerformanceRecorder *performance_;
 };
 
 #endif // MAINWINDOW_H

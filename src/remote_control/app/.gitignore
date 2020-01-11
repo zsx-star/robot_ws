@@ -1,3 +1,2 @@
-*
-!.gitignore
-!robot_control/
+build*
+robot_control/robot_control.pro.user

@@ -9,8 +9,10 @@ class ReoteControl:
 	def __init__(self,host,port):
 		self.addr = (host,port)
 		self.tcpSerSock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+		self.tcpSerSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
 		self.tcpSerSock.bind(self.addr)
 		self.cmd_publisher = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
+	
 		
 	def run(self):
 		self.tcpSerSock.listen(5)
@@ -34,21 +36,19 @@ class ReoteControl:
 		
 		cmd = Twist()
 		if(val == 1):
-			cmd.linear.y = 0.3
+			cmd.linear.x = 0.5
 		elif(val == 2):
-			cmd.linear.y = -0.3
+			cmd.linear.x = -0.5
 		elif(val ==3):
-			cmd.angular.z = 100.0
+			cmd.angular.z = 0.6
 		elif(val ==4):
-			cmd.angular.z = -100.0
+			cmd.angular.z = -0.6
 		self.cmd_publisher.publish(cmd)
-
-
 
 def main():
 	rospy.init_node('remote_control_node', anonymous=True)
 	
-	remote_control = ReoteControl('',12345)
+	remote_control = ReoteControl('',8008)
 	remote_control.run()
 
 

@@ -7,20 +7,18 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    this->setMaximumSize(337,253);
-    this->setMinimumSize(337,253);
+    this->setWindowTitle(tr("Robot Control"));
+    this->setMaximumSize(390,250);
+    this->setMinimumSize(390,250);
+    performance_ = new PerformanceRecorder("config.ini");
     socket = new QTcpSocket();
-    ui->lineEdit_ip->setText("192.168.0.124");
-    ui->lineEdit_port->setText("12345");
     cmd_header = "<robot>";
 
     keys_state = std::vector<bool>(4,false);
     mutexes = std::vector<std::mutex>(4);
+    setFocusPolicy(Qt::StrongFocus);
 
-    ui->pushButton_up->setShortcut(Qt::Key_Up);
-    ui->pushButton_down->setShortcut(Qt::Key_Down);
-    ui->pushButton_left->setShortcut(Qt::Key_Left);
-    ui->pushButton_right->setShortcut(Qt::Key_Right);
+    loadUserPerformance();
 
 }
 
@@ -33,11 +31,13 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    auto result = QMessageBox::question(this,"Close","Confirm Exit",QMessageBox::Yes,QMessageBox::No);
+    auto result = QMessageBox::question(this,"Close","Confirm Exit",QMessageBox::No,QMessageBox::Yes);
     if(result == QMessageBox::Yes)
     {
         send_cmd_thread_flag = false;
+
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        dumpUserPerformance();
         event->accept();
     }
     else
@@ -51,7 +51,7 @@ void MainWindow::sendCmdThread()
     {
         for(int i=0; i<keys_state.size();++i)
         {
-            std::unique_lock<std::mutex> lock(mutexes[i]);
+            //std::unique_lock<std::mutex> lock(mutexes[i]);
             if(keys_state[i])
             {
                 std::string cmd = cmd_header+std::to_string(i+1);
@@ -91,48 +91,93 @@ void MainWindow::on_pushButton_connect_clicked(bool checked)
 
 void MainWindow::on_pushButton_up_pressed()
 {
-    std::unique_lock<std::mutex> lock(mutexes[0]);
+    //std::unique_lock<std::mutex> lock(mutexes[0]);
     keys_state[0] = true;
 }
 
 void MainWindow::on_pushButton_up_released()
 {
-   std::unique_lock<std::mutex> lock(mutexes[0]);
+   //std::unique_lock<std::mutex> lock(mutexes[0]);
    keys_state[0] = false;
 }
 
 void MainWindow::on_pushButton_down_pressed()
 {
-    std::unique_lock<std::mutex> lock(mutexes[1]);
+    //std::unique_lock<std::mutex> lock(mutexes[1]);
     keys_state[1] = true;
 }
 
 void MainWindow::on_pushButton_down_released()
 {
-    std::unique_lock<std::mutex> lock(mutexes[1]);
+    //std::unique_lock<std::mutex> lock(mutexes[1]);
     keys_state[1] = false;
 }
 
 void MainWindow::on_pushButton_left_pressed()
 {
-    std::unique_lock<std::mutex> lock(mutexes[2]);
+    //std::unique_lock<std::mutex> lock(mutexes[2]);
     keys_state[2] = true;
 }
 
 void MainWindow::on_pushButton_left_released()
 {
-    std::unique_lock<std::mutex> lock(mutexes[2]);
+    //std::unique_lock<std::mutex> lock(mutexes[2]);
     keys_state[2] = false;
 }
 
 void MainWindow::on_pushButton_right_pressed()
 {
-    std::unique_lock<std::mutex> lock(mutexes[3]);
+    //std::unique_lock<std::mutex> lock(mutexes[3]);
     keys_state[3] = true;
 }
 
 void MainWindow::on_pushButton_right_released()
 {
-    std::unique_lock<std::mutex> lock(mutexes[3]);
+    //std::unique_lock<std::mutex> lock(mutexes[3]);
     keys_state[3] = false;
 }
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+
+    if(event->key() == Qt::Key_Up)
+        on_pushButton_up_pressed();
+    else if(event->key() == Qt::Key_Down)
+        on_pushButton_down_pressed();
+    else if(event->key() == Qt::Key_Left)
+        on_pushButton_left_pressed();
+    else if(event->key() == Qt::Key_Right)
+        on_pushButton_right_pressed();
+
+}
+
+void MainWindow::keyReleaseEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key_Up)
+        on_pushButton_up_released();
+    else if(event->key() == Qt::Key_Down)
+        on_pushButton_down_released();
+    else if(event->key() == Qt::Key_Left)
+        on_pushButton_left_released();
+    else if(event->key() == Qt::Key_Right)
+        on_pushButton_right_released();
+}
+
+
+void MainWindow::loadUserPerformance()
+{
+    QString ip;
+    performance_->readPerformance(QString("ip"),ip,QString("socket"));
+    ui->lineEdit_ip->setText(ip);
+
+    QString port;
+    performance_->readPerformance(QString("port"),port,QString("socket"));
+    ui->lineEdit_port->setText(port);
+}
+
+void MainWindow::dumpUserPerformance()
+{
+    performance_->writePerformance(QString("ip"), ui->lineEdit_ip->text(),QString("socket"));
+    performance_->writePerformance(QString("port"),ui->lineEdit_port->text(),QString("socket"));
+}
+

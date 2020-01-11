@@ -5,6 +5,8 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /Grid1
+        - /Grid1/Status1
         - /TF1
         - /TF1/Frames1
       Splitter Ratio: 0.652661026
@@ -26,7 +28,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LaserScan
+    SyncSource: ""
 Toolbars:
   toolButtonStyle: 2
 Visualization Manager:
@@ -47,8 +49,8 @@ Visualization Manager:
         Y: 0
         Z: 0
       Plane: XY
-      Plane Cell Count: 80
-      Reference Frame: odom
+      Plane Cell Count: 50
+      Reference Frame: <Fixed Frame>
       Value: true
     - Angle Tolerance: 0.100000001
       Class: rviz/Odometry
@@ -274,29 +276,13 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        base_link:
-          Value: true
-        imu:
-          Value: false
-        imu_base:
-          Value: false
-        laser:
-          Value: false
-        map:
-          Value: true
-        odom:
-          Value: true
       Marker Scale: 3
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        map:
-          odom:
-            base_link:
-              laser:
-                {}
+        {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -322,6 +308,13 @@ Visualization Manager:
       Topic: /move_base/NavfnROS/plan
       Unreliable: false
       Value: true
+    - Class: rviz/Axes
+      Enabled: true
+      Length: 1
+      Name: Axes
+      Radius: 0.100000001
+      Reference Frame: <Fixed Frame>
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 0; 0; 0
@@ -341,7 +334,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -0.830003619
+      Angle: -1.57500362
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
@@ -351,11 +344,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Scale: 76.2533493
+      Scale: 25.5294189
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 3.40192723
-      Y: -2.910326
+      X: 3.83034825
+      Y: -3.34180379
     Saved: ~
 Window Geometry:
   Displays:
