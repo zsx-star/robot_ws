@@ -3,7 +3,7 @@
   <name>keyboard_control</name>
   <version>0.1.0</version>
   <description>The keyboard_control package</description>
-  <maintainer email="shichunguo@gmail.com">Colin</maintainer>
+  <maintainer email="castiel_liu@outlook.com">wendao</maintainer>
 
   <license>MIT</license>
 
@@ -17,3 +17,4 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 </package>
+

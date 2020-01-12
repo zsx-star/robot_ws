@@ -7,8 +7,7 @@
   <license>BSD</license>
   <url>http://ros.org/wiki/rviz_imu_plugin</url>
   <author>Ivan Dryanovski</author>
-  <maintainer email="martin.guenther1980@gmail.com">Martin Günther</maintainer>
-  <maintainer email="ivan.dryanovski@gmail.com">Ivan Dryanovski</maintainer>
+  <maintainer email="castiel_liu@outlook.com">wendao</maintainer>
 
   <buildtool_depend>catkin</buildtool_depend>
 
@@ -21,3 +20,4 @@
   </export>
 
 </package>
+
