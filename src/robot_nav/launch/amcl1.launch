@@ -17,7 +17,7 @@
 		<param name="update_min_d" value="0.03"/>  <!--执行一次滤波器更新所需的平移距离 -->
 		<param name="update_min_a" value="0.02"/>   <!--执行一次滤波器更新所需的旋转角度 rad -->
 		<param name="odom_frame_id" value="odom"/>
-		<param name="resample_interval" value="15"/> <!-- 粒子重采样间隔 -->
+		<param name="resample_interval" value="10"/> <!-- 粒子重采样间隔 -->
 		<!-- Increase tolerance because the computer can get quite busy -->
 		<param name="transform_tolerance" value="0.1"/>  <!--发布变换的时间，以指示此变换在未来有效 -->
 		<param name="recovery_alpha_slow" value="0.001"/>
@@ -28,8 +28,8 @@
 		
 		<!-- 里程计模型参数 -->
 		<param name="odom_model_type" value="diff"/>
-		<param name="odom_alpha1" value="0.2"/>
-		<param name="odom_alpha2" value="0.2"/>
+		<param name="odom_alpha1" value="0.1"/>
+		<param name="odom_alpha2" value="0.1"/>
 		<!-- translation std dev, m -->
 		<param name="odom_alpha3" value="0.2"/>
 		<param name="odom_alpha4" value="0.2"/>
