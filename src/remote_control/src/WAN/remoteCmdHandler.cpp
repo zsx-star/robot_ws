@@ -3,7 +3,6 @@
 RemoteCmdHandler::RemoteCmdHandler():
 	m_heartBeatInterval(5),
     m_maxHeartBeatDelay(3),
-    m_cmd_callback(NULL),
 	m_registerTimeOut(15) 
 {
 	
@@ -131,12 +130,14 @@ void RemoteCmdHandler::receiveThread(const int fd)
 		}
 		else if(PkgType_ControlCmd == header->type) //øÿ÷∆÷∏¡Ó
 		{
-			if(m_cmd_callback == NULL)
-				std::cout << "please bind callback function!" << std::endl;
-			else	
+			try
 			{
 				controlCmdPkg_t *cmdPkg = (controlCmdPkg_t *)recvBuf;
-				m_cmd_callback(cmdPkg->cmd);
+				m_cmdCallback(cmdPkg->cmd);
+			}
+			catch(std::bad_function_call e)
+			{
+				std::cerr << "please bind callback function!" << std::endl;
 			}
 		} 
 		

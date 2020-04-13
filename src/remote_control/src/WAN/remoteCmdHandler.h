@@ -30,7 +30,6 @@ typedef struct  ControlCmdPkg
 
 #pragma pack(pop)
 
-typedef void(*cmdCallBack_t)(controlCmd_t);
 
 class RemoteCmdHandler
 {
@@ -75,7 +74,7 @@ private:
     const int m_maxHeartBeatDelay; //最长心跳延迟 
     const int m_registerTimeOut; //注册到服务器超时时间 
     
-    std::function<cmdCallBack_t> m_cmdCallback;
+    std::function<void(controlCmd_t)> m_cmdCallback;
 };
 
 
