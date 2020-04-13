@@ -55,7 +55,7 @@ bool WanNode::init()
 	mServerPort = nh_private.param<uint16_t>("server_port",8617);
 	mCmdHandler.setServerAddr(mServerIp, mServerPort);
 	mCmdHandler.setRobotId(mRobotId);
-	mCmdHandler.bindCallbackFunction(&WanNode::cmdFromRemote,this);
+	mCmdHandler.registerCallback(&WanNode::cmdFromRemote,this);
 	
 	mPubCmd = nh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
 	

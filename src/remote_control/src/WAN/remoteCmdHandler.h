@@ -11,6 +11,7 @@
 #include <chrono>
 #include <mutex>
 #include <ctime>
+#include <functional>
 
 #pragma pack(push,1)
 
@@ -38,7 +39,14 @@ public:
 	~RemoteCmdHandler();
 	bool start();
 	void stop();
-	void bindCallbackFunction(cmdCallBack_t fun){m_cmd_callback = fun;}
+	void registerCallback(cmdCallBack_t fun){m_cmdCallback = fun;}
+	
+	template<typename classT>
+	void registerCallback(void(classT::*fun)(controlCmd_t),classT *obj)
+	{
+		m_cmdCallback = std::bind(fun,obj,std::placeholders::_1);
+	}
+	
 	void setServerAddr(const std::string& ip, uint16_t port);
 	void setRobotId(uint16_t id);
 		
@@ -66,7 +74,8 @@ private:
     const int m_heartBeatInterval; //心跳间隔 
     const int m_maxHeartBeatDelay; //最长心跳延迟 
     const int m_registerTimeOut; //注册到服务器超时时间 
-    cmdCallBack_t m_cmd_callback;
+    
+    std::function<cmdCallBack_t> m_cmdCallback;
 };
 
 
