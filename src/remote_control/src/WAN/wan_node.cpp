@@ -2,6 +2,7 @@
 #include <iostream>
 #include <ros/ros.h> 
 #include <geometry_msgs/Twist.h>
+#include <cmath>
 
 using std::cout;
 using std::endl;
@@ -53,6 +54,9 @@ bool WanNode::init()
 	mRobotId = nh_private.param<int>("robot_id",505);
 	mServerIp = nh_private.param<std::string>("server_ip","62.234.114.48");
 	mServerPort = nh_private.param<int>("server_port",8617);
+	mMaxLinearSpeed = nh_private.param<float>("max_linear_speed",1.0);
+	mMaxAngularSpeed = nh_private.param<int>("max_angular_speed",M_PI);
+	
 	mCmdHandler.setServerAddr(mServerIp, mServerPort);
 	mCmdHandler.setRobotId(mRobotId);
 	mCmdHandler.registerCallback(&WanNode::cmdFromRemote,this);
