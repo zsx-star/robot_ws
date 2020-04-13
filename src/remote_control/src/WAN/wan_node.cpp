@@ -50,9 +50,9 @@ void WanNode::cmdFromRemote(controlCmd_t cmd)
 
 bool WanNode::init()
 {
-	mRobotId = nh_private.param<uint16_t>("robot_id",505);
+	mRobotId = nh_private.param<int>("robot_id",505);
 	mServerIp = nh_private.param<std::string>("server_ip","62.234.114.48");
-	mServerPort = nh_private.param<uint16_t>("server_port",8617);
+	mServerPort = nh_private.param<int>("server_port",8617);
 	mCmdHandler.setServerAddr(mServerIp, mServerPort);
 	mCmdHandler.setRobotId(mRobotId);
 	mCmdHandler.registerCallback(&WanNode::cmdFromRemote,this);
