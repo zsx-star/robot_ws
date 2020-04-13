@@ -38,7 +38,7 @@ public:
 	~RemoteCmdHandler();
 	bool start();
 	void stop();
-	void registerCallback(void(*fun)(controlCmdPkg_t)){m_cmdCallback = fun;}
+	void registerCallback(void(*fun)(controlCmd_t)){m_cmdCallback = fun;}
 	
 	template<typename classT>
 	void registerCallback(void(classT::*fun)(controlCmd_t),classT *obj)
