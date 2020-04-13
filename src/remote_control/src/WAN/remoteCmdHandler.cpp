@@ -211,20 +211,15 @@ bool RemoteCmdHandler::registerToServer(const int fd, struct sockaddr_in addr)
     
     int cnt = 0;
     m_isRegisterOk = false;
-    float repeatInterval = 0.5; //s
     
     std::cout << "registering to server..." << std::endl;
+    sendto(fd, (char *)&package, sizeof(package), 0, (struct sockaddr*)&addr, sizeof(addr));
     
     while(!m_isRegisterOk) //(Ñ­»·µÇÂ¼)
     {
-        
-        
-        sendto(fd, (char *)&package, sizeof(package), 0, 
-				(struct sockaddr*)&addr, sizeof(addr));
-		
-		std::this_thread::sleep_for(std::chrono::milliseconds(int(repeatInterval*1000))); 
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000)); 
 
-		if(++cnt > m_registerTimeOut/repeatInterval)
+		if(++cnt > m_registerTimeOut)
 		{
 			std::cout << "register time out...";
 			return false;

@@ -13,7 +13,7 @@ public:
 	~WanNode();
 	bool init();
 private:
-	void cmdFromRemote();
+	void cmdFromRemote(controlCmd_t cmd);
 	
 private:
 	ros::Publisher mPubCmd;
