@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<launch>
+	<node name="wan_control_node" pkg="remote_control" type="wan_control_node" output="screen" >
+		<param name="robot_id" value="505" />
+		<param name="server_ip" value="192.168.0.194" />
+		<param name="server_port" value="8617" />
+		
+		<param name="max_linear_speed" value="1.0" />
+		<param name="max_angular_speed" value="3.14" />
+	
+	</node>
+</launch>
