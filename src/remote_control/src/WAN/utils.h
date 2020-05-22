@@ -44,6 +44,7 @@ typedef struct PkgHeader
         head[1] = 0xcc;
         type = t;
         length = checkNum = 0;
+        receiverId = 0;
     }
 } pkgHeader_t;
 

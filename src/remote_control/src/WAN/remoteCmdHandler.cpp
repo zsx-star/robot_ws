@@ -55,13 +55,23 @@ bool RemoteCmdHandler::start()
 	std::thread t(&RemoteCmdHandler::receiveThread, this, m_fd);
 	t.detach();
 	
-	bool ok = this->registerToServer(m_fd,m_registerAddr);
+	bool ok = login(m_fd,m_registerAddr);
 	return ok;
 }
 
 void RemoteCmdHandler::stop()
 {
 	m_runFlag = false;
+	logout(m_fd, m_msgAddr);
+}
+
+void RemoteCmdHandler::logout(const int fd, struct sockaddr_in addr)
+{
+	PkgHeader logoutPkg(PkgType_LogOut);
+	logoutPkg.senderId = m_myId;
+
+	sendto(fd, (char *)&logoutPkg, sizeof(logoutPkg),0,
+			(struct sockaddr*)&addr, sizeof(addr));
 }
 
 
@@ -92,19 +102,20 @@ void RemoteCmdHandler::receiveThread(const int fd)
 		
 		if(PkgType_ResponseRegister == header->type) //服务器回应注册,包含新端口号
 	    {
-	        uint16_t serverPort =
-	            recvBuf[sizeof(PkgHeader)]+recvBuf[sizeof(PkgHeader)+1]*256;
-			addr.sin_port = htons(serverPort);
-			this->m_msgAddr =  addr; //保存服务器消息传输地址 
-	        confirmRegister(fd, m_msgAddr); 
+			std::cout << "received server register response." << std::endl;
+			uint16_t serverPort =
+				recvBuf[sizeof(PkgHeader)]+recvBuf[sizeof(PkgHeader)+1]*256;
+			
+			bzero(&m_msgAddr,sizeof(m_msgAddr)); 
+			m_msgAddr.sin_port = htons(serverPort);
+			m_msgAddr.sin_family = AF_INET;
+			inet_pton(AF_INET, m_serverIp.c_str(), &m_msgAddr.sin_addr);
+	
+			confirmRegister(fd, m_msgAddr); 
 	    }
 	    else if(PkgType_RegisterOK == header->type) //服务器回应注册成功
 	    {
 	    	m_isRegisterOk = true; 
-	    	
-	        //启动心跳线程
-	        std::thread t(&RemoteCmdHandler::heartBeatThread,this, fd, m_msgAddr); 
-	        t.detach();
 	    }
 	    else if(PkgType_RegisterFail == header->type) //服务器回应注册失败
 	    {
@@ -154,11 +165,11 @@ void RemoteCmdHandler::confirmRegister(const int fd, struct sockaddr_in addr)
 {
     PkgHeader package(PkgType_RequestRegister);
     package.senderId = m_myId;
-    for(int i=0; i<3; ++i)
+    for(int i=0; i<2; ++i)
     {
     	int len = sendto(fd, (char *)&package, sizeof(package), 0, 
 					(struct sockaddr*)&addr, sizeof(addr));
-		
+		//std::cout << "send confirm register signal." << std::endl;
 		std::this_thread::sleep_for(std::chrono::milliseconds(200)); 
     }
 }
@@ -205,7 +216,7 @@ int RemoteCmdHandler::initSocket(const int port, const std::string ip, int time_
 } 
 
 
-bool RemoteCmdHandler::registerToServer(const int fd, struct sockaddr_in addr)
+bool RemoteCmdHandler::login(const int fd, struct sockaddr_in addr)
 {
     PkgHeader package(PkgType_RequestRegister);
     package.senderId = m_myId;
@@ -226,6 +237,9 @@ bool RemoteCmdHandler::registerToServer(const int fd, struct sockaddr_in addr)
 			return false;
 		}
     }
+    //启动心跳线程
+	std::thread t(&RemoteCmdHandler::heartBeatThread,this, fd, m_msgAddr); 
+	t.detach();
     std::cout << "Successfully registered to server." << std::endl;
     return true;
 }

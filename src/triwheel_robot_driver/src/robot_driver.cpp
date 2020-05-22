@@ -142,6 +142,7 @@ bool RobotDriver::initializeParams()
 	mImuTopicName = nh_private.param<std::string>("imu_topic","/imu/data_raw");
 	mUseImuYaw = nh_private.param<bool>("use_imu_yaw",true);
 	
+	/*
 	std::vector<double> pose_cov,twist_cov;
 	ros::param::get("~pose_cov", pose_cov);
 	ros::param::get("~twist_cov",twist_cov);
@@ -151,25 +152,29 @@ bool RobotDriver::initializeParams()
 		mOdom.pose.covariance[i] = pose_cov[i];
 		mOdom.twist.covariance[i] = twist_cov[i];
 	}
+	*/
 	
 	mBase2wheelMatrix << 1.0         , 0.0         , -mRotationRadius,
 						 -sin(M_PI/6),  cos(M_PI/6), -mRotationRadius,
 						 -cos(M_PI/3), -sin(M_PI/3), -mRotationRadius;
 	mWheel2baseMatrix = mBase2wheelMatrix.inverse();
+	return true;
 }
 
 void RobotDriver::run()
 {
 	initializeParams();
+	bool ok = initSerial(mSerialPortName, nh_private.param<int>("baud_rate",115200));
+	if(!ok) return;
+	
 	mSubCmd = nh.subscribe("/cmd_vel",1,&RobotDriver::twistCallback,this);
 	if(mUseImuYaw)
 		mSubImu = nh.subscribe(mImuTopicName,5, &RobotDriver::imuCallback, this);
 	mPubOdom = nh.advertise<nav_msgs::Odometry>(mOdomTopicName, 50);
 	mSendSpeedTimer = nh.createTimer(ros::Duration(0.05), &RobotDriver::sendSpeedCallback, this);
 	
-	initSerial(mSerialPortName, nh_private.param<int>("baud_rate",115200));
-	
 	boost::thread parse_thread(boost::bind(&RobotDriver::readSerialThread, this));
+	ros::spin();
 }
 
 void RobotDriver::twistCallback(const geometry_msgs::Twist::ConstPtr& cmd)
@@ -451,7 +456,6 @@ int main(int argc,char** argv)
 	ros::init(argc,argv,"robot_driver_node");
 	RobotDriver driver;
 	driver.run();
-	ros::spin();
 	return 0;
 }
 

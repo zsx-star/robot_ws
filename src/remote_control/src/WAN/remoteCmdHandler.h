@@ -53,8 +53,9 @@ private:
 	void receiveThread(const int fd);
 	void confirmRegister(const int fd, struct sockaddr_in addr);
 	int initSocket(const int port=0, const std::string ip="0.0.0.0", int time_out=0);
-	bool registerToServer(const int fd, struct sockaddr_in addr);
+	bool login(const int fd, struct sockaddr_in addr);
 	void heartBeatThread(const int fd, struct sockaddr_in addr); 
+	void logout(const int fd, struct sockaddr_in addr);
 
 private:
 	int m_fd;
