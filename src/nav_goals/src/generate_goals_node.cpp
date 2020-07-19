@@ -61,7 +61,6 @@ public:
 		}
 		
 		sub_goal_ = nh.subscribe("/move_base_simple/goal" ,1,&GenerateGoals::goal_callback,this);
-		
 		return true;
 	}
 	

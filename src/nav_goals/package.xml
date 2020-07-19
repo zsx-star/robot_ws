@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>generate_goals</name>
+  <name>nav_goals</name>
   <version>0.0.0</version>
-  <description>The generate_goals package</description>
+  <description>The nav_goals package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

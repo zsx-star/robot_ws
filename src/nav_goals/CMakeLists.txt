@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(generate_goals)
+project(nav_goals)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
@@ -134,6 +134,10 @@ include_directories(
 add_executable(${PROJECT_NAME}_node src/generate_goals_node.cpp)
 add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} /usr/local/lib/libtinyxml2.a)
+
+add_executable(goal_transmiter_node src/goal_transmiter_node.cpp)
+add_dependencies(goal_transmiter_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(goal_transmiter_node ${catkin_LIBRARIES})
 
 #############
 ## Install ##
