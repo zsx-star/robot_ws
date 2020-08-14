@@ -11,3 +11,9 @@ roslaunch triwheel_robot_driver robot_driver.launch
 
 #### 键盘控制机器人节点
 roslaunch triwheel_robot_driver robot_keyboard.launch
+
+
+串口永久获得权限
+sudo gedit /etc/udev/rules.d/70-ttyUSB.rules
+
+KERNEL=="ttyUSB*", OWNER="root", GROUP="root", MODE="0666" 

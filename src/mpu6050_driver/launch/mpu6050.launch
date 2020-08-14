@@ -1,7 +1,7 @@
 <!-- -->
 
 <launch>
-	<arg name="port" default="/dev/ttyUSB1"/>
+	<arg name="port" default="/dev/imu"/>
 	<node pkg="mpu6050_driver" type="mpu6050_driver_node" name="mpu6050_drive_node"  output="screen">
 		<param name="port" value="$(arg port)"/>
 		<param name="baud_rate" value="115200"/>

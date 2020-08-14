@@ -4,7 +4,7 @@
 	<include file="$(find mpu6050_driver)/launch/mpu6050.launch" />
 	
 	<node name="triwheel_robot_driver_node" pkg="triwheel_robot_driver" type="triwheel_robot_driver_node" output="screen">
-		<param name="port_name"  value="/dev/ttyTHS2"/>
+		<param name="port_name"  value="/dev/robot_base"/>
 		<param name="use_serial" value="true"/>
 		<param name="baud_rate" value="115200"/>
 		<param name="wheel_diameter" value="0.11"/>
