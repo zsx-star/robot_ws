@@ -1,9 +1,9 @@
 <!-- -->
 
 <launch>
-<arg name="id" default="1"/>
-<arg name="show" default="false" />
-<arg name="file" default="000.yaml"/>
+	<arg name="id" default="1"/>
+	<arg name="show" default="false" />
+	<arg name="file" default="000.yaml"/>
 
 	<node pkg="camera_driver" type="camera_driver_node" name="camera_driver_node" output="screen" args="$(arg id)" >
 		<param name ="calibration_file_path" value="$(find camera_driver)/calibration_file/$(arg file)"/>

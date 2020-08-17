@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <launch>
-	<node name="wan_control_node" pkg="remote_control" type="wan_control_node" output="screen" >
+	<node name="wan_control_node" pkg="remote_control" type="wan_control_node" output="screen" required="true">
 		<param name="robot_id" value="6001" />
 		<param name="server_ip" value="62.234.114.48" />
 		<param name="server_port" value="8617" />
