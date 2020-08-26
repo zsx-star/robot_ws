@@ -1,7 +1,10 @@
 <?xml version="1.0"?>
 
 <launch>
-	<include file="$(find mpu6050_driver)/launch/mpu6050.launch" />
+	<arg name="yawSrc" value="onboard_imu"/>
+	<arg name="use_extern_imu" value="false"/>
+	
+	<include file="$(find mpu6050_driver)/launch/mpu6050.launch" if="$(arg use_extern_imu)"/>
 	
 	<node name="triwheel_robot_driver_node" pkg="triwheel_robot_driver" type="triwheel_robot_driver_node" output="screen">
 		<param name="port_name"  value="/dev/robot_base"/>
@@ -17,8 +20,9 @@
 		
 		<param name="publish_tf" value="true" />
 		<param name="odom_frame" value="odom"/>
+		<param name="yaw_source" value="$(arg yawSrc)"/>
 		
-		<rosparam file="$(find triwheel_robot_driver)/launch/cov.yaml" command="load"/>
+		<!-- rosparam file="$(find triwheel_robot_driver)/launch/cov.yaml" command="load"/-->
 
 	</node>
 	

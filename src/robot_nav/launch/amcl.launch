@@ -54,14 +54,8 @@
 		
 		<param name="laser_likelihood_max_dist" value="2.0"/>   <!-- 地图上测量障碍物膨胀的最大距离-->
 		
-		<!-- 机器人初始参数 -->
-		<param name="initial_pose_x" value="0.0"/>
-		<param name="initial_pose_y" value="0.0"/>
-		<param name="initial_pose_a" value="-0.0"/>
+		<!-- 机器人初始位置参数 -->
+		<rosparam file="$(find robot_nav)/config/robot/initial_pose.yaml" command="load" />
 		
-		<param name="initial_cov_xx" value="1"/> 
-		<param name="initial_cov_yy" value="1"/>
-		<param name="initial_cov_aa" value="2"/>
-
 	</node>
 </launch>

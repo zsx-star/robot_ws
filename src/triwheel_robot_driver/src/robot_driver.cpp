@@ -50,6 +50,14 @@ struct imuMsg_t {
 	uint8_t checknum;
 });
 
+//方向角来源
+enum YawSource
+{
+	YawSource_wheelOdom,
+	YawSource_onBoardImu,
+	YawSource_externImu,
+};
+
 class RobotDriver
 {
 public: 
@@ -107,8 +115,12 @@ private:
 	ros::Time mLastTwistTime;
 	geometry_msgs::Twist mCurrentTwist;
 	bool mPublishTf;
-	bool mUseImuYaw;
-	double mImuYaw;
+	
+	YawSource mYawSource;
+	
+	double mOnboadImuYaw;
+	double mWheelOdomYaw;
+	double mExternImuYaw;
 };
 
 RobotDriver::RobotDriver():
@@ -117,6 +129,7 @@ RobotDriver::RobotDriver():
 	mEncoderMsg((encoderMsg_t *)mPkgBuffer),
 	mImuMsg((imuMsg_t *)mPkgBuffer)
 {
+	mYawSource = YawSource_onBoardImu;
 }
 RobotDriver::~RobotDriver()
 {
@@ -140,8 +153,23 @@ bool RobotDriver::initializeParams()
 	mOdomTopicName = nh_private.param<std::string>("odom_topic", "/odom");
 	mPublishTf = nh_private.param<bool>("publish_tf", true);
 	mImuTopicName = nh_private.param<std::string>("imu_topic","/imu/data_raw");
-	mUseImuYaw = nh_private.param<bool>("use_imu_yaw",true);
-	
+	std::string yawSrc = nh_private.param<std::string>("yaw_source","wheel");
+	if(yawSrc == "onboard_imu")
+	{
+		mYawSource = YawSource_onBoardImu;
+		ROS_INFO("The yaw source is onboard imu.");
+	}
+		
+	else if(yawSrc == "extern_imu")
+	{
+		mYawSource = YawSource_externImu;
+		ROS_INFO("The yaw source is extern imu.");
+	}
+	else
+	{
+		mYawSource = YawSource_wheelOdom;
+		ROS_INFO("The yaw source is wheel odom.");
+	}
 	/*
 	std::vector<double> pose_cov,twist_cov;
 	ros::param::get("~pose_cov", pose_cov);
@@ -168,8 +196,9 @@ void RobotDriver::run()
 	if(!ok) return;
 	
 	mSubCmd = nh.subscribe("/cmd_vel",1,&RobotDriver::twistCallback,this);
-	if(mUseImuYaw)
+	if(mYawSource == YawSource_externImu)
 		mSubImu = nh.subscribe(mImuTopicName,5, &RobotDriver::imuCallback, this);
+		
 	mPubOdom = nh.advertise<nav_msgs::Odometry>(mOdomTopicName, 50);
 	mSendSpeedTimer = nh.createTimer(ros::Duration(0.05), &RobotDriver::sendSpeedCallback, this);
 	
@@ -185,7 +214,7 @@ void RobotDriver::twistCallback(const geometry_msgs::Twist::ConstPtr& cmd)
 
 void RobotDriver::imuCallback(const sensor_msgs::Imu::ConstPtr& imu)
 {
-	mImuYaw = tf2::getYaw(imu->orientation);
+	mExternImuYaw = tf2::getYaw(imu->orientation);
 }
 
 void RobotDriver::sendSpeedCallback(const ros::TimerEvent&)
@@ -316,17 +345,12 @@ void RobotDriver::handleImuMsg()
 	float accel_x = (1.0*mImuMsg->accel_x - 32768)/32768 * (9.81*2); //m/s2
 	float accel_y = (1.0*mImuMsg->accel_y - 32768)/32768 * (9.81*2);
 	float gyro_z  = (1.0*mImuMsg->gyro_z  - 32768)/32768 * 2000;     //deg/s
-	float yaw     = (1.0*mImuMsg->yaw      -32768)/100 +360.0;       //deg
+	float yaw     = (1.0*mImuMsg->yaw      -32768)/100 + 360.0;       //deg
 	
 	//cout << accel_x  << "\t" << accel_y  << "\t" << gyro_z  << "\t" << yaw << endl;
 
-	static float yaw_offset = 0.0;
-	if(yaw_offset ==0)
-	{
-		yaw_offset = yaw;
-		return;
-	}
-	yaw = yaw - yaw_offset;
+	mOnboadImuYaw = yaw*M_PI/180.0;
+	
 	//cout << std::fixed << accel_x  << "\t" << accel_y  << "\t" << gyro_z  << "\t" << yaw << endl;
 }
 
@@ -375,9 +399,17 @@ void RobotDriver::handleEncoderMsg()
 	else if(mPose[2] < -2*M_PI)
 		mPose[2] += 2*M_PI;
 	
-	// 如需要使用imu航向角，用mImuYaw 覆盖轮速里程计的到的角度
-	if(mUseImuYaw)
-		mPose[2] = mImuYaw; 
+	mWheelOdomYaw = mPose[2];
+	
+//	ROS_INFO("wheel,onBoard,extern\t %.2f\t%.2f\t%.2f", mWheelOdomYaw*180.0/M_PI,
+//														mOnboadImuYaw*180.0/M_PI,
+//														mExternImuYaw*180.0/M_PI);
+
+	if(mYawSource == YawSource_externImu) //使用外部Imu航向角
+		mPose[2] = mExternImuYaw;
+	else if(mYawSource == YawSource_onBoardImu)//使用板载Imu航向角
+		mPose[2] = mOnboadImuYaw;
+	
 	
 	//cout << mPose[0] << "\t" << mPose[1] << "\t" <<  mPose[2]*180.0/M_PI << endl;
 	tf2::Quaternion q;
