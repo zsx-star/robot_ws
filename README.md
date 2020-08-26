@@ -13,8 +13,10 @@ roslaunch triwheel_robot_driver robot_driver.launch
 roslaunch triwheel_robot_driver robot_keyboard.launch
 
 
-#### 建图
+#### 导航
 
+rosservice call /global_localization "{}" 
+roslaunch robot_nav ctrl_wan.launch
 
 
 
