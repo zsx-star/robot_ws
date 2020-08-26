@@ -1,6 +1,6 @@
 <launch>
 
-	<include file="$(find triwheel_robot_driver)/launch/robot_driver.launch"/>
+	<!-- include file="$(find triwheel_robot_driver)/launch/robot_driver.launch"/-->
 	<include file="$(find remote_control)/launch/wan_control.launch"/>
 	
 </launch>

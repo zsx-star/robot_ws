@@ -1,5 +1,5 @@
 # robot_ws
-The robot platform in huaman
+The robot platform in h-u-a-m-a-n
 
 1. 修改键盘权限
 sudo chmod a+r /dev/input/by-path/*
@@ -11,6 +11,12 @@ roslaunch triwheel_robot_driver robot_driver.launch
 
 #### 键盘控制机器人节点
 roslaunch triwheel_robot_driver robot_keyboard.launch
+
+
+#### 建图
+
+
+
 
 
 串口永久获得权限

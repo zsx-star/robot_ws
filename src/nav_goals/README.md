@@ -12,9 +12,11 @@
 * **`run`**  运行时需要传入需要标记目标点的地图
 	roslaunch nav_goals generate_goals.launch map:='map.yaml' 
 
-### Node goal_transmiter_node.cpp 导航目标传递节点
+### Node goal_transmiter_node 导航目标传递节点
 	机器人控制界面无法直接向ROS发布目标点请求信息，通过fifo进行消息传递，
 	控制界面将目标点信息写入fifo，转发节点从fifo中读取并发布
+* **`run`**
+	roslaunch nav_goals goal_transmiter.launch
 	
 
 ## dependencies

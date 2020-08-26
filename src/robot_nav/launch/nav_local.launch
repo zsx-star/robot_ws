@@ -1,0 +1,30 @@
+<!-- xml -->
+
+<launch>
+	<!-- 设置地图的配置文件 -->
+	<arg name="map" default="map.yaml" />
+
+	<!-- 运行地图服务器，并且加载设置的地图-->
+	<node name="map_server" pkg="map_server" type="map_server" args="$(find slam)/map/$(arg map)"/>
+	
+	<!-- lidar -->
+	<include file="$(find sensors)/launch/rplidar.launch"/>
+	<node name="laser2base_tf" pkg="tf" type="static_transform_publisher" args="0.1 0 0.05 3.1415926 0 0 base_link laser 100"/>
+	
+	<!-- 运动控制 -->
+	<include file="$(find robot_nav)/launch/move_base.launch"/>
+	
+	<!-- amcl 定位 -->
+	<include file="$(find robot_nav)/launch/amcl.launch" />
+	
+	<!-- 目标点转发节点 -->
+	<include file="$(find nav_goals)/launch/goal_transmiter.launch"/>
+	
+	<!-- 机器人驱动 -->
+	<include file="$(find triwheel_robot_driver)/launch/robot_driver.launch"/>
+	
+	
+	<!-- 运行rviz -->
+	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find robot_nav)/rviz/nav.rviz"/>
+	
+</launch>

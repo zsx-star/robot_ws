@@ -37,7 +37,7 @@
 		
 		
 		<!-- 激光雷达参数 -->
-		<param name="laser_max_beams" value="100"/>  <!--更新过滤器时，要在每圈使用多少均匀间隔的光束 -->
+		<param name="laser_max_beams" value="200"/>  <!--更新过滤器时，要在每圈使用多少均匀间隔的光束 -->
 		<param name="laser_min_range" value="-1.0"/> <!-- -1.0 表示使用激光雷达上报的范围 -->
 		<param name="laser_max_range" value="-1.0"/>
 		
@@ -53,9 +53,6 @@
 		<!-- param name="laser_model_type" value="beam"/ -->  <!--激光束模型 -->
 		
 		<param name="laser_likelihood_max_dist" value="2.0"/>   <!-- 地图上测量障碍物膨胀的最大距离-->
-		
-		<!--机器人模型 -->
-		<param name="odom_model_type" value="diff"/>  <!--差分模型 -->
 		
 		<!-- 机器人初始参数 -->
 		<param name="initial_pose_x" value="0.0"/>

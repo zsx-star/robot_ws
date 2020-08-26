@@ -13,6 +13,7 @@ public:
 	WanNode();
 	~WanNode();
 	bool init();
+	bool isRunning();
 private:
 	void cmdFromRemote(controlCmd_t cmd);
 	
@@ -36,6 +37,11 @@ WanNode::WanNode():
 WanNode::~WanNode()
 {
 	mCmdHandler.stop(); 
+}
+
+bool WanNode::isRunning()
+{
+	return ros::ok() && mCmdHandler.isRunning();
 }
 
 void WanNode::cmdFromRemote(controlCmd_t cmd)
@@ -71,7 +77,13 @@ int main(int argc,char**argv)
 	ros::init(argc,argv,"remote_wan_node");
 	
 	WanNode wanNode;
-	if(wanNode.init())
-		ros::spin();
+	if(!wanNode.init())
+		return 0;
+	ros::Rate r(20);
+	while(wanNode.isRunning())
+	{
+		ros::spinOnce();
+		r.sleep();
+	}
 	return 0;
 }

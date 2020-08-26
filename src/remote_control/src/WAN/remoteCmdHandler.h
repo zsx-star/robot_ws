@@ -48,6 +48,7 @@ public:
 	
 	void setServerAddr(const std::string& ip, uint16_t port);
 	void setRobotId(uint16_t id);
+	bool isRunning(){return m_isRegisterOk;}
 		
 private: 
 	void receiveThread(const int fd);
