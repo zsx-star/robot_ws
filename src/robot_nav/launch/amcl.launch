@@ -13,7 +13,7 @@
 		<!-- 滤波器参数 -->
 		<param name="gui_publish_rate" value="10.0"/>
 		<param name="min_particles" value="500"/>
-		<param name="max_particles" value="2000"/>
+		<param name="max_particles" value="2500"/>
 		<param name="update_min_d" value="0.03"/>  <!--执行一次滤波器更新所需的平移距离 -->
 		<param name="update_min_a" value="0.02"/>   <!--执行一次滤波器更新所需的旋转角度 rad -->
 		<param name="odom_frame_id" value="odom"/>
