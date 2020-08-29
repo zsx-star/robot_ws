@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <iostream>
+#include <thread>
 #include "fifo.hpp"
 #include <geometry_msgs/PoseStamped.h>
 
@@ -38,21 +39,38 @@ public:
 			return false;
 		}
 
-		if(!mFifo.open(fifo_name, "r"))
+		if(!mFifo.open(fifo_name, "wr"))
 			return false;
-			
-		mPubGoal = nh.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal",1);
+		
+		std::string ns = nh_private.param<std::string>("namespace","");
+		std::string topic = ns + "/goal";
+		mPubGoal = nh.advertise<geometry_msgs::PoseStamped>(topic,1);
 		
 		ROS_INFO("[%s] initial ok .", __NAME__);
 		return true;
 	}
 	
+	//该线程等待ros退出后向fifo发送空消息，以促使阻塞接收退出
+	void exitThread()
+	{
+		while(ros::ok())
+		{
+			ros::Duration(0.5).sleep();
+		}
+		mFifo.send(" ",1);
+	}
+	
 	void run()
 	{
+		std::thread t(&GoalTransmiter::exitThread,this);
+		
 		char buf[100];
 		while(ros::ok())
 		{
 			int len = mFifo.receive(buf, 100);
+			if(len != sizeof(pose_t))
+				continue;
+				
 			pose_t *pose = (pose_t *)buf;
 		
 			orientation_t orien = pose->orientation;

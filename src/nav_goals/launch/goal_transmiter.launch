@@ -2,6 +2,7 @@
 
 	<node name="goal_transmiter_node" pkg="nav_goals" type="goal_transmiter_node" output="screen">
 		<param name="fifo_name" value="/tmp/robotNavGoalFifo"/>
+		<param name="namespace" value="move_base_simple"/>
 	</node>
 	
 </launch>
