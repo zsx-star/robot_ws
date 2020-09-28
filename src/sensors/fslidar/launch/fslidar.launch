@@ -1,0 +1,17 @@
+<!--  
+-->
+
+<launch>
+<arg name="scan_topic" default="/scan"/>
+<arg name="lidar_ethernet_ip" default=" "/>
+<arg name="lidar_serial_port_id" default="/dev/lidar" />
+
+  <node pkg="fslidar"  type="lidar_node" name="lidar_node" output="screen">
+    <param name="dev_path"         type="string" 	value="$(arg lidar_serial_port_id)"/>
+    <param name="inverted"            type="bool"   value="false"/>
+    <param name="frame_id"            type="string" value="/lidar_frame"/>
+    <param name="sample_rate"         type="int"    value="5000"/>
+    <param name="rotational_speed"    type="int"    value="5"/>
+    <param name="scan_topic"            type="string"   value="$(arg scan_topic)"/>
+  </node>
+</launch>
