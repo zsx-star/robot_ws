@@ -1,0 +1,49 @@
+
+
+base_local_planner: base_local_planner/TrajectoryPlannerROS
+
+controller_frequency: 5.0         #控制器控制频率
+recovery_behavior_enabled: false  #恢复行为使能
+clearing_rotation_allowed: false  #
+
+TrajectoryPlannerROS:
+   max_vel_x: 1.0
+   min_vel_x: 0.1
+   max_vel_y: 0.0                 #差动机器人没有y向速度
+   min_vel_y: 0.0
+   max_vel_theta: 1.0
+   min_vel_theta: -1.0
+   min_in_place_vel_theta: 0.2    #最小原地转向速度
+   escape_vel: -0.1               #机器人逃离速度
+   acc_lim_x: 1.5
+   acc_lim_y: 0.0                 # zero for a differential drive robot
+   acc_lim_theta: 1.2
+   
+   use_dijkstra: ture 
+   use_grid_path: false
+   holonomic_robot: false
+   yaw_goal_tolerance: 0.1 # about 6 degrees
+   xy_goal_tolerance: 0.1  # 10 cm
+   latch_xy_goal_tolerance: false #是否锁存目标,当机器人到达目标点附近后,旋转到期望角度,不再考虑机器人是否因惯性或其他因素远离了目标点
+   
+                                  #轨迹代价由三部分组成1.轨迹离散点到全局路径的距离和, 2.     3.障碍物占用代价(路径)
+   path_distance_bias: 0.9        #到目标路径距离所占的权值,轨迹规划时,轨迹代价由两部分组成1.轨迹离散点到全局路径的距离和
+   goal_distance_bias: 0.6        #
+   meter_scoring: true            #利用m为单位进行代价权重计算,鲁棒性好,在地图分辨率改变时结果不受影响
+
+   heading_lookahead: 0.325
+   heading_scoring: false
+   heading_scoring_timestep: 0.8
+   occdist_scale: 0.1             #障碍物占用权值
+   oscillation_reset_dist: 0.05   #震荡标志复位前,机器人必须走多远的距离
+   publish_cost_grid_pc: false    #是否发布规划代价网格
+   prune_plan: true               #是否进行路径修剪,true->移除机器人走过的路径,仅保留1m
+
+   sim_time: 1.0                  #轨迹模拟时间
+   sim_granularity: 0.025
+   angular_sim_granularity: 0.025
+   vx_samples: 3                  #x速度采样空间大小
+   vy_samples: 0                  #y速度采样空间大小,差分机器人没有y速度
+   vtheta_samples: 10             #角速度采样空间
+   dwa: true
+   simple_attractor: false

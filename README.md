@@ -1,33 +1,51 @@
-# 三轮机器人
+# robot_ws
+## 一、环境安装配置
+### 1. 自动安装所有ros依赖包
+cd robot_ws
+rosdep install --from-paths src --ignore-src -r -y
 
-## 键盘控制节点
+### 2. 三方依赖库
+#### 2.1 tinyxml2 xml解析器
+git clone https://github.com/leethomason/tinyxml2.git
+cd tinyxml2 && sudo make install
+
+### 3. 串口、键盘权限
+添加串口永久权限 \
+sudo gedit /etc/udev/rules.d/70-ttyUSB.rules
+KERNEL=="ttyUSB*", OWNER="root", GROUP="root", MODE="0666" 
+
+修改键盘权限
 sudo chmod a+r /dev/input/by-path/*
-roslaunch keyboard_control keyboard.launch
 
-## 机器人底层控制节点
-roslaunch triwheel_robot_driver robot_driver.launch
+端口映射
+gedit /etc/udev/rules.d/com.rules
+其中KERNELS的值通过 $ll /sys/class/tty/ttyUSB* 查看
 
-## 键盘控制机器人节点
+ACTION=="add",KERNELS=="3-3.2:1.0",SUBSYSTEMS=="usb",MODE:="0666",SYMLINK+="lidar" 
+ACTION=="add",KERNELS=="3-3.2:1.0",SUBSYSTEMS=="usb",MODE:="0666",SYMLINK+="robot_base" 
+
+
+## 二、机器人功能
+### 1. 键盘控制机器人
 roslaunch triwheel_robot_driver robot_keyboard.launch
 
+### 2. SLAM建图
+roslaunch slam robot_gmapping.launch
+
+
 ## 导航
+
 rosservice call /global_localization "{}" 
 roslaunch robot_nav ctrl_wan.launch
 
 
-## 串口永久获得权限
-sudo gedit /etc/udev/rules.d/70-ttyUSB.rules
-添加一行
-KERNEL=="ttyUSB*", OWNER="root", GROUP="root", MODE="0666" 
 
 
-## dependencies
-- tinyxml2 xml解析器
 
-```bash
-git clone https://github.com/leethomason/tinyxml2.git
-cd tinyxml2 && sudo make install
-```
+
+
+
+
 
 # autolabor差动机器人
 ## cartographer建图
