@@ -1,0 +1,16 @@
+<!-- -->
+
+<launch>
+	<arg name="id" default="0"/>
+	
+	<node pkg="camera_driver" type="camera_driver_node" name="camera_driver_node" output="screen" args="$(arg id)" >
+		<param name ="calibration_file_path" value=""/>
+		<param name ="frame_rate" value="30"/>
+		<param name="is_show_image" value="true"/>
+		<rosparam param="image_resolution" > [1920, 1080] </rosparam>
+		<param name="image_scale" value="1.0"/>
+		
+	</node>
+
+</launch>
+

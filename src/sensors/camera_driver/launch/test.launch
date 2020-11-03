@@ -1,0 +1,23 @@
+<!-- -->
+
+<launch>
+	<arg name="camera_id" default="0"/>
+	<arg name="show" default="true" />
+
+	<!-- camera -->
+	<node pkg="camera_driver" type="camera_driver_node" name="camera_driver_node" output="screen" args="$(arg camera_id)" >
+		<remap from="/camera_info" to="/left/camera_info"/>
+		<remap from="/image_rectified" to="/left/image_rectified"/>
+		
+		<param name ="calibration_file_path" value="$(find qrcode_detect)/cfg/camera.yaml"/>
+		<param name ="frame_rate" value="30"/>
+		<param name="frame_id" value="left_camera"/>
+		<param name="is_show_image" value="$(arg show)"/>
+		<param name="cycle_pub_camera_info" value="true"/>
+		<rosparam param="image_resolution" > [640,480] </rosparam>
+		<param name="image_scale" value="1.0"/>
+		
+	</node>
+
+</launch>
+
