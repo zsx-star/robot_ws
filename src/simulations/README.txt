@@ -1,24 +1,21 @@
 
-启动gmapping演示
-roslaunch mbot_gazebo mbot_laser_nav_gazebo.launch     #gazabo仿真环境(环境模型、机器人模型、传感器模型)
+# gmapping demo
+roslaunch mbot_gazebo mbot_laser_nav_gazebo.launch     #gazabo (environment_model/robot_model/sensor_model  )
 roslaunch mbot_navigation gmapping_demo.launch         #gmapping
-roslaunch mbot_teleop mbot_teleop.launch
-rosrun map_server map_saver -f map  保存地图
+roslaunch mbot_teleop mbot_teleop.launch               #tele_control
+rosrun map_server map_saver -f map                     #save_map
 
-导航仿真 
+#navigation demo
 roslaunch mbot_gazebo mbot_laser_nav_gazebo.launch
 roslaunch mbot_navigation nav_cloister_demo.launch
 
 
-导航slam仿真
-roslaunch mbot_gazebo mbot_laser_nav_gazebo.launch
-roslaunch mbot_navigation exploring_slam_demo.launch
-
-自主探索slam仿真
+#auto slam (exploring_slam)
 roslaunch mbot_gazebo mbot_laser_nav_gazebo.launch
 roslaunch mobot_navigation exploring_slam_domo.launch
 rosrun mbot_navigation exploring_slam.py
 
+#amcl resample all partials
 rosservice call /global_localization "{}"
 
 
