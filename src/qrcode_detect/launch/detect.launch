@@ -24,6 +24,7 @@
         <param name="camera_frame"       value="$(arg eye)_camera"/>
         <param name="marker_frame"       value="$(arg marker_frame)" />
         <param name="corner_refinement"  value="$(arg corner_refinement)" />
+        <param name="rotate_marker_axis" value="false"/>    <!-- 是否旋转marker的轴，旋转之后tf与图像显示的坐标系不同，不知为什么默认要旋转 -->
     </node>
 	
 	

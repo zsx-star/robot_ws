@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<!-- -->
 
 <launch>
 	<node name="keyboard_control_node" pkg="keyboard_control" type="keyboard_control_node" output="screen" >
