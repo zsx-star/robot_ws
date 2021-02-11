@@ -1,7 +1,6 @@
 
 # gmapping demo
 roslaunch mbot_gazebo mbot_laser_nav_gazebo.launch     #gazabo (environment_model/robot_model/sensor_model  )
-
 roslaunch mbot_navigation gmapping_demo.launch         #gmapping
 
 roslaunch mbot_teleop mbot_teleop.launch               #tele_control
