@@ -34,7 +34,6 @@ roslaunch slam robot_gmapping.launch
 
 
 ## 导航
-
 rosservice call /global_localization "{}" 
 roslaunch robot_nav ctrl_wan.launch
 
