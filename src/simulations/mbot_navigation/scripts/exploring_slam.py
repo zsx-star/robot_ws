@@ -40,7 +40,7 @@ class NavTest():
         locations['6'] = Pose(Point(-2.343, 1.854, 0.000),   Quaternion(0.000, 0.000, -0.862, 0.506))  
         
         # 发布控制机器人的消息  
-        self.cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=5)  
+        self.cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=5)  
 
         # 订阅move_base服务器的消息  
         self.move_base = actionlib.SimpleActionClient("move_base", MoveBaseAction)  

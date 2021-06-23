@@ -12,7 +12,7 @@ roslaunch mbot_navigation nav_cloister_demo.launch
 
 #auto slam (exploring_slam)
 roslaunch mbot_gazebo mbot_laser_nav_gazebo.launch
-roslaunch mobot_navigation exploring_slam_domo.launch
+roslaunch mbot_navigation exploring_slam_domo.launch
 rosrun mbot_navigation exploring_slam.py
 
 #amcl resample all partials
